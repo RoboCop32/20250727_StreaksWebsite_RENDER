@@ -1,6 +1,6 @@
 absl-py==2.0.0
 affine==2.4.0
-alabaster @ file:///home/ktietz/src/ci/alabaster_1611921544520/work
+
 anaconda-client==1.11.0
 anaconda-navigator==2.1.4
 anyio @ file:///C:/ci/anyio_1644481921011/work/dist
