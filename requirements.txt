@@ -10,7 +10,7 @@ psycopg2_binary==2.9.9
 scipy==1.10.0
 Shapely==1.8.4
 SQLAlchemy==1.4.39
-
+Werkzeug==2.3.7
 setuptools>=65.5.0
 wheel
 pip>=23.1
