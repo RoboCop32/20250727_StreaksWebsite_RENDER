@@ -2,7 +2,7 @@ branca==0.8.1
 Flask==2.2.2
 folium==0.19.4
 geopandas==0.12.2
-
+gunicorn==21.2.0
 numpy==1.23.5
 pandas==1.5.2
 psycopg2==2.9.9
