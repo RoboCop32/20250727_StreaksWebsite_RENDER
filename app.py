@@ -48,7 +48,7 @@ local_db = "postgresql+psycopg2://postgres:yourpassword@localhost:5434/postgres"
 # Use DATABASE_URL from Render if available
 db_url = os.environ.get("DATABASE_URL", local_db)
 engine1 = create_engine(db_url)
-engine1 = create_engine(signin_info)
+#engine1 = create_engine(signin_info)
 
 main_table_name = "fixtures_stadium_join_2425_20250222"
 
