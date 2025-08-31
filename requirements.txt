@@ -2,6 +2,7 @@
 pip>=24.0
 setuptools>=68.0.0
 wheel>=0.41.0
+gunicorn==21.2.0
 
 # Database
 psycopg2-binary==2.9.9
@@ -18,6 +19,8 @@ geopandas==0.14.3
 shapely==2.0.4
 pyproj==3.6.1
 fiona==1.9.6
+numpy==1.26.4
+scipy==1.13.1
 
 # Mapping
 folium==0.15.1
