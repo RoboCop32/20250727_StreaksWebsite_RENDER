@@ -15,7 +15,7 @@ Shapely==1.8.4
 SQLAlchemy==1.4.39
 
 Werkzeug==2.3.7
-setuptools>=65.5.0
+
 wheel
 pip>=23.1
 
