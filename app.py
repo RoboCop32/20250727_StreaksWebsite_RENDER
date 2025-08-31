@@ -51,7 +51,7 @@ engine1 = create_engine(db_url)
 <<<<<<< HEAD
 =======
 #engine1 = create_engine(signin_info)
->>>>>>> 97a1013e48d898fb55aa32992d6f9d5807a62d3e
+
 
 main_table_name = "fixtures_stadium_combined_20250830"
 
