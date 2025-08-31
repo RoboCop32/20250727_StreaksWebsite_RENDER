@@ -1,15 +1,23 @@
-pip>=25.1
-setuptools>=75.0.0
+# Core packaging tools
+pip>=24.0
+setuptools>=68.0.0
 wheel>=0.41.0
 
-Flask==2.3.3
-gunicorn==21.2.0
-sqlalchemy==2.0.31
+# Database
 psycopg2-binary==2.9.9
-pandas==2.2.2
-geopandas==0.14.4
+
+# Web framework
+Flask==2.2.5
+gunicorn==21.2.0
+
+# Data & geo libraries
+numpy==1.23.5
+pandas==2.0.3
+geopandas==0.14.3
 shapely==2.0.4
-folium==0.16.0
-branca==0.7.2
-numpy==1.26.4
-scipy==1.13.1
+pyproj==3.6.1
+fiona==1.9.6
+
+# Mapping
+folium==0.15.1
+branca==0.7.1
