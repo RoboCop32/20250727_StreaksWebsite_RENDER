@@ -49,7 +49,7 @@ local_db = "postgresql+psycopg2://postgres:yourpassword@localhost:5434/postgres"
 db_url = os.environ.get("DATABASE_URL", local_db)
 engine1 = create_engine(db_url)
 
-=======
+
 #engine1 = create_engine(signin_info)
 
 
