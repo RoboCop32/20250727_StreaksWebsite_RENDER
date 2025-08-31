@@ -9,6 +9,7 @@ psycopg2-binary==2.9.9
 # Web framework
 Flask==2.2.5
 gunicorn==21.2.0
+sqlalchemy==2.0.31
 
 # Data & geo libraries
 numpy==1.23.5
