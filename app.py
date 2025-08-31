@@ -43,7 +43,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # Database connection details - for RENDER
-local_db = "postgresql+psycopg2://postgres:yourpassword@localhost:5434/postgres"
+local_db = "postgresql://myapp_db_x30v_user:7qClIk24pcyyepGQpvmOg9HV8pVmQVKe@dpg-d2q4ket6ubrc73cv49l0-a/myapp_db_x30v"
 
 # Use DATABASE_URL from Render if available. Comment below out if using locally...
 db_url = os.environ.get("DATABASE_URL", local_db)
