@@ -45,12 +45,11 @@ app.secret_key = os.urandom(24)
 # Database connection details - for RENDER
 local_db = "postgresql+psycopg2://postgres:yourpassword@localhost:5434/postgres"
 
-# Use DATABASE_URL from Render if available
+# Use DATABASE_URL from Render if available. Comment below out if using locally...
 db_url = os.environ.get("DATABASE_URL", local_db)
 engine1 = create_engine(db_url)
-engine1 = create_engine(signin_info)
 
-main_table_name = "fixtures_stadium_join_2425_20250222"
+main_table_name = "fixtures_stadium_combined_20250830"
 
 show_lines = True  # Default: Show arrows
 

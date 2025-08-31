@@ -48,39 +48,86 @@
         #filtered-table-section {
             display: none;
         }
+		#welcome-screen {
+		  transition: opacity 4s ease;
+		}
+		#welcome-screen.hidden {
+		  opacity: 0;
+		  pointer-events: none;
+		}
     </style>
 </head>
 <body>
-    <h2>How Many Days Gaps Between Games are you after? (choose between 1–10)</h2>
+
+	<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: center; flex-direction: column;" hidden>
+	  <h1>Welcome to the Football Streak Finder App</h1>
+	  <p>Ever wondered how many days of football fixturees you could attend consecutively? This app lets you achieve that!</p>
+	  <p>This app looks into a database of every professional fixture planned for the 24/25 football season per country and returns consecutive fixtures</p>
+	  <p></p>
+	  <h2>How to Use:</h2>
+	  <p>1. Firstly choose the amount of days between 2 fixtures that would define them as 'consecutive'. 
+	  For example, if you choose 1, only fixtures that occur 1 day after each other will be returned as 'consecutive'. 
+	  If you pick 7, fixtures that occur between 1-7 days after the previous fixture will be returned as 'consecutive'. And so on. This allows you to have breaks in between fixtures.
+	  After inputting your 'day gap' and clicking Generate Football Streaks, the table of football streaks returns. 
+	  Start and End date is when the streak starts and ends. Country and No. of fixtures are self explanatory</p>
+	  <p>2. Click on a row. All the fixtures returned will be shown on a map and as a table underneath the map, with the date, home and away teams, and stadium.
+	  Points are colour-coded based on their date - fixtures that share a date have the same colour.
+	  By hovering over a row, the corresponding fixture on the map will light up. Click on a row to zoom to that fixture's location (based on the stadium).</p>
+	  <p>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
+	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</p>
+	  <p>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</p>
+	  <button onclick="hideWelcome()">OK</button>
+	</div>
+	
+
+	
+    <h2>Choose the amount of days between 2 fixtures that would define them as 'consecutive': (choose between 1–10)</h2>
     <form method="POST">
         <input type="number" name="streak_gap" required min="1" max="10" placeholder="Enter Day Gap" style="width: 150px;">
-        <button type="submit">Generate Itineraries</button>
+        <button type="submit">Generate Football Streaks!</button>
+		
     </form>
-
+	
+	<button onclick="showWelcomeAgain()" style="
+	  position: fixed;
+	  top: 10px;
+	  left: 10px;
+	  margin: 10px;
+	  padding: 10px 15px;
+	  font-size: 16px;
+	  background-color: green;
+	  color: white;
+	  border: none;
+	  border-radius: 5px;
+	">
+	  i
+	</button>
     {% if streak_shown %}
-    <div id="controls">
-        <button onclick="toggleVisibility('data-table-container')">Show/Hide Streak Table</button>
-        <button onclick="toggleVisibility('filtered-table-section')">Show/Hide Filtered Matches</button>
-        <button id="filter-btn">Filter</button>
-        <button id="toggle-lines-btn" style="display:none">Show Arrows</button>
-    </div>
+
+
 
     <div id="data-table-container">
         <table id="data-table">
             <thead>
+			<tr>
+				<th colspan="5">
+					<button id="toggle-table-btn">▼ Hide Table</button>
+				</th>
+			</tr>
                 <tr>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Country</th>
-                    <th>Number of Matches</th>
+					<th>Country</th>
+                    <th>Start Date of Streak</th>
+                    <th>End Date of Streak</th>           
+                    <th>Number of fixturees in Streak</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in df_data %}
-                <tr data-streak-id="{{ row.Streak_ID }}">
-                    <td>{{ row.interval_start_date }}</td>
-                    <td>{{ row.interval_end_date }}</td>
+				
+                <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
                     <td>{{ row.streak_country }}</td>
+					<td>{{ row.interval_start_date }}</td>
+                    <td>{{ row.interval_end_date }}</td>                    
                     <td>{{ row.day_interval }}</td>
                 </tr>
                 {% endfor %}
@@ -89,16 +136,21 @@
     </div>
 
     <div class="map-container"></div>
+	
+	<div id="controls">
+        <button id="filter-btn">Filter</button>
+        <button id="toggle-lines-btn" style="display:none">Show Arrows</button>
+    </div>
 
     <div id="filtered-table-section">
         <h3>Filtered Fixtures</h3>
         <table id="filtered-data-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Home</th>
-                    <th>Away</th>
-                    <th>Stadium</th>
+                    <th>Date of Fixture</th>
+                    <th>Home Team</th>
+                    <th>Away Team</th>
+                    <th>fixture Stadium</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -107,9 +159,25 @@
     {% endif %}
 
     <script>
-    function toggleVisibility(id) {
-        const el = document.getElementById(id);
+	
+	function hideWelcome() {
+	  const welcome = document.getElementById("welcome-screen");
+	  welcome.style.display = "none";
+	  welcome.setAttribute("hidden", true);
+	  sessionStorage.setItem("welcomeShown", "true");
+	}
+
+	function showWelcomeAgain() {
+	const welcome = document.getElementById("welcome-screen");
+	welcome.style.display = "flex";
+	}
+	
+    function toggleVisibility(el) {
+		
+		console.log(el)
         if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+		console.log(el.style.display )
+		document.getElementById("toggle-table-btn").textContent = "▲ Show Table"
     }
 
     function haversine(lat1, lon1, lat2, lon2) {
@@ -206,13 +274,31 @@
             row.addEventListener("click", () => {
                 const marker = markers[id];
                 if (marker) {
+					console.log(marker)
                     marker.openPopup();
                     map.setView(marker.getLatLng(), 10, { animate: true });
                 }
             });
         });
     }
+	
+		//welcome screen
+	document.addEventListener("DOMContentLoaded", () => {
+	  const welcome = document.getElementById("welcome-screen");
+	  const alreadyShown = sessionStorage.getItem("welcomeShown");
+	  console.log("SessionStorage says welcomeShown:", alreadyShown);
+	  
+	  if (alreadyShown === "true") {
+		welcome.setAttribute("hidden", true);
+		welcome.style.display = "none";
+	  } else {
+		welcome.removeAttribute("hidden");
+		welcome.style.display = "flex";
+	  }
+	});
 
+
+	
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("#data-table tbody tr").forEach(tr => {
             tr.addEventListener("click", () => {
@@ -230,10 +316,12 @@
                         tr.dataset.lon = row.longitude;
                         tr.innerHTML = `<td>${row.date}</td><td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
                         tbody.appendChild(tr);
+						
                     });
 
                     renderMap(originalData);
                     document.getElementById("filtered-table-section").style.display = 'block';
+					
                 });
             });
         });
@@ -265,6 +353,23 @@
             renderMap(showFiltered ? filteredData : originalData);
         });
     });
+	
+	//show/hide Table
+	const toggleTableBtn = document.getElementById("toggle-table-btn");
+    const tableBody = document.querySelector("#data-table tbody"); //so this is the name of our table
+
+    // Toggle table visibility when the button is clicked
+    toggleTableBtn.addEventListener("click", function () {
+        if (tableBody.style.display === "none") {
+            tableBody.style.display = "table-row-group"; // Show table
+            toggleTableBtn.textContent = "▼ Hide Table";
+        } else {
+            tableBody.style.display = "none"; // Hide table
+            toggleTableBtn.textContent = "▲ Show Table";
+        }
+    });
+	
+
     </script>
 </body>
 </html>
