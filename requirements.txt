@@ -1,3 +1,9 @@
+
+setuptools>=65.0.0
+wheel
+pip
+
+psycopg2_binary==2.9.9
 branca==0.8.1
 Flask==2.2.2
 folium==0.19.4
@@ -9,13 +15,12 @@ gunicorn==21.2.0
 numpy==1.23.5
 pandas==1.5.2
 psycopg2==2.9.9
-psycopg2_binary==2.9.9
+
 scipy==1.10.0
 Shapely==1.8.4
 SQLAlchemy==1.4.39
 
 Werkzeug==2.3.7
 
-wheel
-pip>=23.1
+
 
