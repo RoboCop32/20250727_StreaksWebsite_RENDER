@@ -263,7 +263,7 @@
 		console.log(markers)
 
 
-        if (document.getElementById('toggle-lines-btn').textContent.includes('Hide') && points.length > 1 && document.getElementById('filter-btn').textContent.includes('Filter')) {
+        if (document.getElementById('toggle-lines-btn').textContent.includes('Hide') && points.length > 1) {
             lines = L.polyline(points, { color: 'red', weight: 4 }).addTo(map);
         }
 

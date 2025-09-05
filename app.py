@@ -160,7 +160,7 @@ def find_optimum_stadiums(gdf):
     
     categories = gdf['date'].unique()
 
-    gdf = gdf[gdf["geometry"]!= None]
+    gdf = gdf[gdf["geometry"]!= None].sort_values("date")
 
     groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
 
@@ -263,7 +263,7 @@ def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", heig
     if gdf is None or gdf.empty:
         return None
 
-    gdf = gdf.to_crs(epsg=4326)
+    gdf = gdf.to_crs(epsg=4326).sort_values("date") 
     gdf['date'] = gdf['date'].astype(str)
 
     if long is None or lat is None:
