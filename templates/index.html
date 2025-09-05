@@ -176,6 +176,10 @@
 
     <script>
 	
+	function cleanDate(d) {
+		  return d.split(" ")[0]; // take only YYYY-MM-DD
+		}
+	
 	function hideWelcome() {
 	  const welcome = document.getElementById("welcome-screen");
 	  welcome.style.display = "none";
@@ -275,7 +279,17 @@
 			};
 			legend.addTo(map);
 		}
-		// ✅ Sort by date before drawing
+		
+		// ✅ Build map of unique_id → all order numbers
+		const orderMap = {};
+		data
+		  .slice()
+		  .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+		  .forEach((row, idx) => {
+			if (!orderMap[row.unique_id]) orderMap[row.unique_id] = [];
+			orderMap[row.unique_id].push(idx + 1); // store 1-based index
+		  });
+		 // ✅ Sort by date before drawing 
 		data
 		  .slice()
 		  .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
@@ -295,15 +309,15 @@
 			}).addTo(map).bindPopup(popupText);
 			
 			if (showFiltered) {
-				const orderLabel = index + 1;
+				const orderLabels = orderMap[id].join(","); // e.g. "2,6"
 				L.marker([lat, lon], {
 					icon: L.divIcon({
 						className: "order-label",
-						html: `<b style="color:white;font-size:18px;text-shadow: -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black, 1px 1px 2px black;">
-							  ${orderLabel}
-						   </b>`,
-						iconSize: [20, 20],
-						iconAnchor: [10, -10]
+						html: `<b style="color:white;font-size:14px;text-shadow:-1px -1px 2px black,1px -1px 2px black,-1px 1px 2px black,1px 1px 2px black;">
+								  ${orderLabels}
+							   </b>`,
+						iconSize: [30, 20],
+						iconAnchor: [15, -10]
 					})
 				}).addTo(map);
 			}
@@ -351,7 +365,7 @@
                         tr.dataset.id = row.unique_id;
                         tr.dataset.lat = row.latitude;
                         tr.dataset.lon = row.longitude;
-                        tr.innerHTML = `<td>${row.date}</td><td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
+                        tr.innerHTML = `<td>${cleanDate(row.date)}</td><td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
                         tbody.appendChild(tr);
 						
 						
@@ -402,7 +416,7 @@
 				tr.dataset.lat = row.latitude;
 				tr.dataset.lon = row.longitude;
 				tr.innerHTML = `
-				  <td>${row.date}</td>
+				  <td>${cleanDate(row.date)}</td>
 				  <td>${row.home}</td>
 				  <td>${row.away}</td>
 				  <td>${row["Stadium Name"]}</td>

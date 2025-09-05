@@ -263,7 +263,7 @@ def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", heig
     if gdf is None or gdf.empty:
         return None
 
-    gdf = gdf.to_crs(epsg=4326).sort_values("date") 
+    gdf = gdf.to_crs(epsg=4326).sort_values("date").dt.strftime("%Y-%m-%d")  
     gdf['date'] = gdf['date'].astype(str)
 
     if long is None or lat is None:
@@ -314,7 +314,9 @@ def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", heig
             </script>
             """
             m.get_root().html.add_child(folium.Element(marker_js))
-
+    
+    
+    
     # Optional: arrows between points
     if arrows:
         print("arrows added!")
