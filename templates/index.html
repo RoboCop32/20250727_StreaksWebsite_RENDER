@@ -48,33 +48,29 @@
         #filtered-table-section {
             display: none;
         }
-
+		#welcome-screen {
+		  transition: opacity 4s ease;
+		}
 		#welcome-screen.hidden {
 		  opacity: 0;
 		  pointer-events: none;
 		}
 		
-		#welcome-screen {
-		  transition: opacity 0.4s ease;
-		  padding: 20px;
-		  text-align: center;
-		  overflow-y: auto; /* scroll if too tall */
+		.info.legend {
+		  background: white;
+		  padding: 8px 12px;
+		  border-radius: 8px;
+		  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+		  font-size: 14px;
+		  line-height: 18px;
+		  text-align: left;
 		}
-
-		#welcome-screen h1 {
-		  font-size: 6vw; /* scale with screen */
+		.info.legend h4 {
+		  margin: 0 0 5px;
+		  font-size: 14px;
 		}
-
-		#welcome-screen p, #welcome-screen h2 {
-		  font-size: 4vw;
-		  max-width: 90%;
-		  margin: 10px auto;
-		}
-
-		#welcome-screen button {
-		  font-size: 5vw;
-		  padding: 10px 20px;
-		}
+		
+		
     </style>
 </head>
 <body>
@@ -263,21 +259,22 @@
 		});
 		
 		// ✅ Add legend (date → color)
-		const legend = L.control({ position: "bottomright" });
-		legend.onAdd = function () {
-			const div = L.DomUtil.create("div", "info legend");
-			div.innerHTML = "<h4>Fixture Dates</h4>";
-			uniqueDates.forEach(date => {
-				div.innerHTML += `
-					<div>
-						<span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
-						${date}
-					</div>`;
-			});
-			return div;
-		};
-		legend.addTo(map);
-
+		if (!showFiltered) {
+			const legend = L.control({ position: "bottomright" });
+			legend.onAdd = function () {
+				const div = L.DomUtil.create("div", "info legend");
+				div.innerHTML = "<h4>Fixture Dates</h4>";
+				uniqueDates.forEach(date => {
+					div.innerHTML += `
+						<div>
+							<span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
+							${date}
+						</div>`;
+				});
+				return div;
+			};
+			legend.addTo(map);
+		}
 		// ✅ Sort by date before drawing
 		data
 		  .slice()
@@ -302,7 +299,9 @@
 				L.marker([lat, lon], {
 					icon: L.divIcon({
 						className: "order-label",
-						html: `<b style="color:black;font-size:12px;">${orderLabel}</b>`,
+						html: `<b style="color:white;font-size:14px;text-shadow: -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black, 1px 1px 2px black;">
+							  ${orderLabel}
+						   </b>`,
 						iconSize: [20, 20],
 						iconAnchor: [10, -10]
 					})
