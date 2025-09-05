@@ -317,6 +317,7 @@ def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", heig
 
     # Optional: arrows between points
     if arrows:
+        print("arrows added!")
         locations = list(zip(gdf.geometry.y, gdf.geometry.x))
         if len(locations) > 1:
             folium.PolyLine(locations, color="red", weight=4, opacity=0.7).add_to(m)
