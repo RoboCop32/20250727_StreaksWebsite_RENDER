@@ -48,12 +48,32 @@
         #filtered-table-section {
             display: none;
         }
-		#welcome-screen {
-		  transition: opacity 4s ease;
-		}
+
 		#welcome-screen.hidden {
 		  opacity: 0;
 		  pointer-events: none;
+		}
+		
+		#welcome-screen {
+		  transition: opacity 0.4s ease;
+		  padding: 20px;
+		  text-align: center;
+		  overflow-y: auto; /* scroll if too tall */
+		}
+
+		#welcome-screen h1 {
+		  font-size: 6vw; /* scale with screen */
+		}
+
+		#welcome-screen p, #welcome-screen h2 {
+		  font-size: 4vw;
+		  max-width: 90%;
+		  margin: 10px auto;
+		}
+
+		#welcome-screen button {
+		  font-size: 5vw;
+		  padding: 10px 20px;
 		}
     </style>
 </head>
@@ -241,6 +261,22 @@
 			dateColors[date] = colors[currentColorIndex % colors.length];
 			currentColorIndex++;
 		});
+		
+		// ✅ Add legend (date → color)
+		const legend = L.control({ position: "bottomright" });
+		legend.onAdd = function () {
+			const div = L.DomUtil.create("div", "info legend");
+			div.innerHTML = "<h4>Fixture Dates</h4>";
+			uniqueDates.forEach(date => {
+				div.innerHTML += `
+					<div>
+						<span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
+						${date}
+					</div>`;
+			});
+			return div;
+		};
+		legend.addTo(map);
 
 		// ✅ Sort by date before drawing
 		data
@@ -260,6 +296,18 @@
 				fillColor: dateColors[row.date],
 				fillOpacity: 0.9
 			}).addTo(map).bindPopup(popupText);
+			
+			if (showFiltered) {
+				const orderLabel = index + 1;
+				L.marker([lat, lon], {
+					icon: L.divIcon({
+						className: "order-label",
+						html: `<b style="color:black;font-size:12px;">${orderLabel}</b>`,
+						iconSize: [20, 20],
+						iconAnchor: [10, -10]
+					})
+				}).addTo(map);
+			}
 
 			markers[id] = marker;
 			points.push([lat, lon]);
