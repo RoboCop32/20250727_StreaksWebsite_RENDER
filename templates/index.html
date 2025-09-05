@@ -220,58 +220,58 @@
 
     let originalData = [], filteredData = [], showFiltered = false, map, markers = {}, lines;
 
-    function renderMap(data) {
-        const container = document.querySelector(".map-container");
-        if (!container) return;
-        container.style.display = 'block';
-        container.innerHTML = '<div id="leaflet-map" style="height:100%;width:100%"></div>';
+    function renderMap(data, options = {}) {
+		const container = document.querySelector(".map-container");
+		if (!container) return;
+		container.style.display = 'block';
+		container.innerHTML = '<div id="leaflet-map" style="height:100%;width:100%"></div>';
 
-        map = L.map('leaflet-map').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+		map = L.map('leaflet-map').setView([20, 0], 2);
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        markers = {};
-        const points = [];
+		markers = {};
+		const points = [];
 
-        let colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"];
-        let dateColors = {};
-        let currentColorIndex = 0;
+		let colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"];
+		let dateColors = {};
+		let currentColorIndex = 0;
 
-        const uniqueDates = [...new Set(data.map(row => row.date))];
-        uniqueDates.forEach(date => {
-            dateColors[date] = colors[currentColorIndex % colors.length];
-            currentColorIndex++;
-        });
+		const uniqueDates = [...new Set(data.map(row => row.date))].sort();
+		uniqueDates.forEach(date => {
+			dateColors[date] = colors[currentColorIndex % colors.length];
+			currentColorIndex++;
+		});
 
-        data.forEach((row, index) => {
-            const { latitude: lat, longitude: lon, unique_id: id } = row;
-            if (lat == null || lon == null) return;
+		// ✅ Sort by date before drawing
+		data
+		  .slice()
+		  .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+		  .forEach((row, index) => {
+			const { latitude: lat, longitude: lon, unique_id: id } = row;
+			if (lat == null || lon == null) return;
 
-            let popupText = `${row.date}: ${row.home} vs ${row.away}`;
-            if (showFiltered && index === 0) popupText = "START: " + popupText;
-            else if (showFiltered && index === data.length - 1) popupText = "END: " + popupText;
+			let popupText = `${row.date}: ${row.home} vs ${row.away}`;
+			if (options.withArrows && index === 0) popupText = "START: " + popupText;
+			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
 
-            const marker = L.circleMarker([lat, lon], {
-                radius: 6,
-                color: 'black',
-                fillColor: dateColors[row.date],
-                fillOpacity: 0.9
-            }).addTo(map).bindPopup(popupText);
+			const marker = L.circleMarker([lat, lon], {
+				radius: 6,
+				color: 'black',
+				fillColor: dateColors[row.date],
+				fillOpacity: 0.9
+			}).addTo(map).bindPopup(popupText);
 
-            markers[id] = marker;
-            points.push([lat, lon]);
-        });
-		console.log(markers)
+			markers[id] = marker;
+			points.push([lat, lon]);
+		});
 
+		// ✅ Draw arrows in date order
+		if (options.withArrows && points.length > 1) {
+			lines = L.polyline(points, { color: 'red', weight: 4 }).addTo(map);
+		}
 
-        if (document.getElementById('toggle-lines-btn').textContent.includes('Hide') && points.length > 1) {
-            lines = L.polyline(points, { color: 'red', weight: 4 }).addTo(map);
-        }
-
-        if (points.length) map.fitBounds(points);
-
-       
-    }
-	
+		if (points.length) map.fitBounds(points);
+	}	
 		//welcome screen
 	document.addEventListener("DOMContentLoaded", () => {
 	  const welcome = document.getElementById("welcome-screen");
