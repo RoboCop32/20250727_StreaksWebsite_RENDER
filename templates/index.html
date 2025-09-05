@@ -330,18 +330,24 @@
         });
 
         document.getElementById("filter-btn").addEventListener("click", () => {
-			const arrowBtn = document.getElementById("toggle-lines-btn");
-			arrowBtn.style.display = !showFiltered ? "inline-block" : "none";
 			showFiltered = !showFiltered;
+			const arrowBtn = document.getElementById("toggle-lines-btn");
+
+			// ✅ Always hide arrows + reset button text
+			arrowBtn.style.display = showFiltered ? "inline-block" : "none";
+			arrowBtn.textContent = "Show Arrows";
+
+			// ✅ Pick the correct dataset
 			const data = showFiltered ? filteredData : originalData;
+
+			// ✅ Render map without arrows
 			renderMap(data);
 
+			// ✅ Rebuild the table (sorted by date)
 			const tbody = document.querySelector("#filtered-data-table tbody");
 			tbody.innerHTML = "";
-
-			// ✅ sort data by date before rendering
 			data
-			  .slice() // copy so originalData/filteredData isn’t mutated
+			  .slice()
 			  .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
 			  .forEach(row => {
 				const tr = document.createElement("tr");
@@ -355,8 +361,8 @@
 				  <td>${row["Stadium Name"]}</td>
 				`;
 				tbody.appendChild(tr);
-				
-				// add hover + click now (markers will exist after renderMap runs)
+
+				// ✅ Attach hover/click
 				tr.addEventListener("mouseover", () => markers[row.unique_id]?.setStyle({ color: 'yellow', radius: 12 }));
 				tr.addEventListener("mouseout", () => markers[row.unique_id]?.setStyle({ color: 'black', radius: 6 }));
 				tr.addEventListener("click", () => {
@@ -367,20 +373,22 @@
 					}
 				});
 			  });
-			  
-			  if (showFiltered) {
-				const btn = document.getElementById("toggle-lines-btn");
-				btn.textContent = "Hide Arrows";
-				renderMap(originalData);
-			}
 
+			// ✅ Update filter button text
 			document.getElementById("filter-btn").textContent = showFiltered ? "Show Original" : "Filter";
 		});
 
 		document.getElementById("toggle-lines-btn").addEventListener("click", () => {
 			const btn = document.getElementById("toggle-lines-btn");
-			btn.textContent = btn.textContent.includes("Hide") ? "Show Arrows" : "Hide Arrows";
-			renderMap(showFiltered ? filteredData : originalData);
+			const data = showFiltered ? filteredData : originalData;
+
+			if (btn.textContent.includes("Show")) {
+				btn.textContent = "Hide Arrows";
+				renderMap(data, { withArrows: true }); // ← pass flag to draw arrows
+			} else {
+				btn.textContent = "Show Arrows";
+				renderMap(data, { withArrows: false }); // ← redraw without arrows
+			}
 		});
     });
 	
