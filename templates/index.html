@@ -260,14 +260,8 @@
             markers[id] = marker;
             points.push([lat, lon]);
         });
-
-        if (document.getElementById('toggle-lines-btn').textContent.includes('Hide') && points.length > 1) {
-            lines = L.polyline(points, { color: 'red', weight: 4 }).addTo(map);
-        }
-
-        if (points.length) map.fitBounds(points);
-
-        document.querySelectorAll("#filtered-data-table tbody tr").forEach(row => {
+		console.log(markers)
+		document.querySelectorAll("#filtered-data-table tbody tr").forEach(row => {
             const id = row.dataset.id;
             row.addEventListener("mouseover", () => markers[id]?.setStyle({ color: 'yellow', radius: 12 }));
             row.addEventListener("mouseout", () => markers[id]?.setStyle({ color: 'black', radius: 6 }));
@@ -280,6 +274,14 @@
                 }
             });
         });
+
+        if (document.getElementById('toggle-lines-btn').textContent.includes('Hide') && points.length > 1 && document.getElementById('filter-btn').textContent.includes('Filter')) {
+            lines = L.polyline(points, { color: 'red', weight: 4 }).addTo(map);
+        }
+
+        if (points.length) map.fitBounds(points);
+
+       
     }
 	
 		//welcome screen
