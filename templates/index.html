@@ -194,10 +194,10 @@
                 {% for row in df_data %}
 				
                 <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
-                    <td>{{ row.streak_country }}</td>
+                    <td>{ row.streak_country }</td>
 					<td>{cleanDate(row.interval_start_date) }</td>
                     <td>{ cleanDate(row.interval_end_date) }</td>                    
-                    <td>{{ row.day_interval }}</td>
+                    <td>{ row.day_interval }</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -231,8 +231,9 @@
 	
 	function cleanDate(d) {
 		  const arr = d.split(" ");
-		  const sliced = arr.slice(1, -1); 	
-		  return sliced; // take only YYYY-MM-DD
+		  const sliced = arr.slice(1, -2); 
+		  const	joined = sliced.join(" ");	  
+		  return joined; // take only YYYY-MM-DD
 		}
 	
 	function hideWelcome() {
@@ -369,7 +370,7 @@
 				L.marker([lat, lon], {
 					icon: L.divIcon({
 						className: "order-label",
-						html: `<b style="color:white;font-size:14px;text-shadow:-1px -1px 2px black,1px -1px 2px black,-1px 1px 2px black,1px 1px 2px black;">
+						html: `<b style="color:white;font-size:18.5px;text-shadow:-1px -1px 2px black,1px -1px 2px black,-1px 1px 2px black,1px 1px 2px black;">
 								  ${orderLabels}
 							   </b>`,
 						iconSize: [30, 20],
