@@ -263,8 +263,8 @@ def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", heig
     if gdf is None or gdf.empty:
         return None
 
-    gdf = gdf.to_crs(epsg=4326).sort_values("date").dt.strftime("%Y-%m-%d")  
-    gdf['date'] = gdf['date'].astype(str)
+    gdf = gdf.to_crs(epsg=4326).sort_values("date") 
+    gdf['date'] = gdf['date'].dt.strftime("%Y-%m-%d").astype(str)
 
     if long is None or lat is None:
         lat = gdf.geometry.y.mean()
@@ -425,7 +425,7 @@ def get_streak(streak_id):
     
     
     result = {
-        #'map_html': str(map_html),
+        'map_html': str(map_html),
         'df_data': df_data_dict,
         
     }
