@@ -366,8 +366,17 @@
 			}).addTo(map).bindPopup(popupText);
 			
 			if (showFiltered) {
+
 				const orderLabels = orderMap[id].join(","); // e.g. "2,6"
-				L.marker([lat, lon], {
+				
+				// Apply jitter
+				const jitterAmount = 0.0002;
+				const jitter = () => (Math.random() - 0.5) * 2 * jitterAmount;
+				
+				const jitteredLat = lat + jitter();
+				const jitteredLon = lon + jitter();
+				
+				L.marker([jittered_lat, jittered_lon], {
 					icon: L.divIcon({
 						className: "order-label",
 						html: `<b style="color:white;font-size:18.5px;text-shadow:-1px -1px 2px black,1px -1px 2px black,-1px 1px 2px black,1px 1px 2px black;">
