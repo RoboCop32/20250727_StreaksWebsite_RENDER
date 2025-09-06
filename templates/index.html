@@ -75,10 +75,10 @@
 </head>
 <body>
 
-	<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 20px;" hidden>
+	<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 40px;" hidden>
 	  <h1>Welcome to the Football Streak Finder App</h1>
-	  <p>Ever wondered how many days of football fixturees you could attend consecutively? This app lets you achieve that!</p>
-	  <p>This app looks into a database of every professional fixture planned for the 24/25 football season per country and returns consecutive fixtures</p>
+	  <p>Ever wondered how many days of football fixtures you could attend consecutively? This app lets you achieve that!</p>
+	  <p>This app looks into a database of every professional fixture planned for the 25/26 football season per country and returns consecutive fixtures</p>
 	  <p></p>
 	  <h2>How to Use:</h2>
 	  <p>1. Firstly choose the amount of days between 2 fixtures that would define them as 'consecutive'. 
@@ -93,55 +93,66 @@
 	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</p>
 	  <p>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</p>
 	  <button onclick="hideWelcome()">BEGIN</button>
-	  <h2> Current leagues included: </h2>
+	  <h3> Current leagues included: </h3>
 	  <p>
-	    <br> La Liga<br/>
-		<br> La Liga 2<br/>
-		<br> Primera RFEF - 1<br/>
-		<br> Primera RFEF - 2<br/>
-		<br> Ligue 1<br/>
-		<br> Ligue 2<br/>
-		<br> National (France)<br/>
-		<br> Liga Portugal<br/>
-		<br> Liga Portugal 2<br/>
-		<br> Serie A<br/>
-		<br> Serie B<br/>
-		<br> Serie C - A<br/>
-		<br> Serie C - B<br/>
-		<br> Serie C - C<br/>
-		<br> Chance Liga<br/>
-		<br> Super League (Greece)<br/>
-		<br> Liga 1<br/>
-		<br> Liga 2<br/>
-		<br> Super Liga<br/>
-		<br> Parva Liga<br/>
-		<br> Vtora Liga<br/>
-		<br> ChNl<br/>
-		<br> Eerste Divisie<br/>
-		<br> Eredivise<br/>
-		<br> Jupiler Pro League<br/>
-		<br> Super League (Switzerland)<br/>
-		<br> Challenger League<br/>
-		<br> Super Lig<br/>
-		<br> 2. Lig Red Group<br/>
-		<br> BGL Ligue<br/>
-		<br> Bundesliga Austria<br/>
-		<br> Ekstraklasa<br/>
-		<br> Division 1 (Poland)<br/>
-		<br> Division 2 (Poland)<br/>
-		<br> Premier Division (Ireland)<br/>
-		<br> Division 1 (Ireland)<br/>
-		<br> Superliga<br/>
-		<br> 1st Division (Denmark)<br/>
-		<br> NB I.<br/>
-		<br> NB II.<br/>
-		<br> HNL<br/>
-		<br> Prva NL<br/>
-		<br> Eliteserien<br/>
-		<br> OBOS-ligaen<br/>
-		<br> Allsvenskan<br/>
-		<br> Superettan<br/>
-
+	    <br> Premier League - England</br>
+		<br> Championship - England</br>
+		<br> League One - England</br>
+		<br> League Two - England</br>
+		<br> National League - England</br>
+		<br> National League North - England</br>
+		<br> National League South - England</br>
+		<br> Scottish Premiership - Scotland</br>
+		<br> Scottish Championship - Scotland</br>
+		<br> Bundesliga - Germany</br>
+		<br> Bundesliga 2 - Germany</br>
+		<br> Bundesliga 3 - Germany</br>
+		<br> La Liga - Spain<br/>
+		<br> La Liga 2 - Spain<br/>
+		<br> Primera RFEF - 1 - Spain<br/>
+		<br> Primera RFEF - 2 - Spain<br/>
+		<br> Ligue 1 - France<br/>
+		<br> Ligue 2 - France<br/>
+		<br> National (France) - France<br/>
+		<br> Liga Portugal - Portugal<br/>
+		<br> Liga Portugal 2 - Portugal<br/>
+		<br> Serie A - Italy<br/>
+		<br> Serie B - Italy<br/>
+		<br> Serie C - A - Italy<br/>
+		<br> Serie C - B - Italy<br/>
+		<br> Serie C - C - Italy<br/>
+		<br> Chance Liga - Czech Republic<br/>
+		<br> Super League (Greece) - Greece<br/>
+		<br> Liga 1 - Romania<br/>
+		<br> Liga 2 - Romania<br/>
+		<br> Super Liga - Serbia<br/>
+		<br> Parva Liga - Bulgaria<br/>
+		<br> Vtora Liga - Bulgaria<br/>
+		<br> ChNl - Czech Republic<br/>
+		<br> Eerste Divisie - Netherlands<br/>
+		<br> Eredivise - Netherlands<br/>
+		<br> Jupiler Pro League - Belgium<br/>
+		<br> Super League (Switzerland) - Switzerland<br/>
+		<br> Challenger League - Switzerland<br/>
+		<br> Super Lig - Turkey<br/>
+		<br> 2. Lig Red Group - Turkey<br/>
+		<br> BGL Ligue - Luxembourg<br/>
+		<br> Bundesliga Austria - Austria<br/>
+		<br> Ekstraklasa - Poland<br/>
+		<br> Division 1 (Poland) - Poland<br/>
+		<br> Division 2 (Poland) - Poland<br/>
+		<br> Premier Division (Ireland) - Ireland<br/>
+		<br> Division 1 (Ireland) - Ireland<br/>
+		<br> Superliga - Denmark<br/>
+		<br> 1st Division (Denmark) - Denmark<br/>
+		<br> NB I. - Hungary<br/>
+		<br> NB II. - Hungary<br/>
+		<br> HNL - Croatia<br/>
+		<br> Prva NL - Croatia<br/>
+		<br> Eliteserien - Norway<br/>
+		<br> OBOS-ligaen - Norway<br/>
+		<br> Allsvenskan - Sweden<br/>
+		<br> Superettan - Sweden<br/>
 	  </p>
 	  <p>Disclaimer: Whilst every care is taken to ensure accuracy, the information provided in this website may not be complete or fully accurate. Please double-check before relying on it.</p>
 	  <p>Any issues please contact: Sodu6xuS@proton.me</p>
@@ -370,7 +381,7 @@
 				const orderLabels = orderMap[id].join(","); // e.g. "2,6"
 				
 				// Apply jitter
-				const jitterAmount = 0.002;
+				const jitterAmount = 0.006; //this is what we adjust
 				const jitter = () => (Math.random() - 0.5) * 2 * jitterAmount;
 				
 				const jitteredLat = lat + jitter();
