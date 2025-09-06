@@ -425,7 +425,7 @@ def get_streak(streak_id):
     
     
     result = {
-        'map_html': str(map_html),
+        #'map_html': str(map_html),
         'df_data': df_data_dict,
         
     }
