@@ -56,6 +56,12 @@
 		  pointer-events: none;
 		}
 		
+		#welcome-page {
+		  max-height: 100vh;   /* restrict to viewport */
+		  overflow-y: auto;    /* scroll within this div */
+		  padding: 1rem;
+		}
+		
 		.info.legend {
 		  background: white;
 		  padding: 8px 12px;
@@ -93,6 +99,57 @@
 	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</p>
 	  <p>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</p>
 	  <button onclick="hideWelcome()">OK</button>
+	  <p> Current leagues included: </p>
+	  <p>
+	    <br> La Liga<br/>
+		<br> La Liga 2<br/>
+		<br> Primera RFEF - 1<br/>
+		<br> Primera RFEF - 2<br/>
+		<br> Ligue 1<br/>
+		<br> Ligue 2<br/>
+		<br> National (France)<br/>
+		<br> Liga Portugal<br/>
+		<br> Liga Portugal 2<br/>
+		<br> Serie A<br/>
+		<br> Serie B<br/>
+		<br> Serie C - A<br/>
+		<br> Serie C - B<br/>
+		<br> Serie C - C<br/>
+		<br> Chance Liga<br/>
+		<br> Super League (Greece)<br/>
+		<br> Liga 1<br/>
+		<br> Liga 2<br/>
+		<br> Super Liga<br/>
+		<br> Parva Liga<br/>
+		<br> Vtora Liga<br/>
+		<br> ChNl<br/>
+		<br> Eerste Divisie<br/>
+		<br> Eredivise<br/>
+		<br> Jupiler Pro League<br/>
+		<br> Super League (Switzerland)<br/>
+		<br> Challenger League<br/>
+		<br> Super Lig<br/>
+		<br> 2. Lig Red Group<br/>
+		<br> BGL Ligue<br/>
+		<br> Bundesliga Austria<br/>
+		<br> Ekstraklasa<br/>
+		<br> Division 1 (Poland)<br/>
+		<br> Division 2 (Poland)<br/>
+		<br> Premier Division (Ireland)<br/>
+		<br> Division 1 (Ireland)<br/>
+		<br> Superliga<br/>
+		<br> 1st Division (Denmark)<br/>
+		<br> NB I.<br/>
+		<br> NB II.<br/>
+		<br> HNL<br/>
+		<br> Prva NL<br/>
+		<br> Eliteserien<br/>
+		<br> OBOS-ligaen<br/>
+		<br> Allsvenskan<br/>
+		<br> Superettan<br/>
+
+	  </p>
+	  <p>Any issues please contact: Sodu6xuS@proton.me</p>
 	</div>
 	
 
@@ -127,14 +184,14 @@
             <thead>
 			<tr>
 				<th colspan="5">
-					<button id="toggle-table-btn">▼ Hide Table</button>
+					<button id="toggle-table-btn">▲ Hide Table</button>
 				</th>
 			</tr>
                 <tr>
 					<th>Country</th>
                     <th>Start Date of Streak</th>
                     <th>End Date of Streak</th>           
-                    <th>Number of fixturees in Streak</th>
+                    <th>Number of Fixtures in Streak</th>
                 </tr>
             </thead>
             <tbody>
@@ -142,8 +199,8 @@
 				
                 <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
                     <td>{{ row.streak_country }}</td>
-					<td>{cleanDate({ row.interval_start_date })}</td>
-                    <td>{cleanDate({ row.interval_end_date })}</td>                    
+					<td>cleanDate({{ row.interval_start_date }})</td>
+                    <td>cleanDate({{ row.interval_end_date }})</td>                    
                     <td>{{ row.day_interval }}</td>
                 </tr>
                 {% endfor %}
@@ -166,7 +223,7 @@
                     <th>Date of Fixture</th>
                     <th>Home Team</th>
                     <th>Away Team</th>
-                    <th>fixture Stadium</th>
+                    <th>Fixture Stadium</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -177,7 +234,7 @@
     <script>
 	
 	function cleanDate(d) {
-		  return d.split(" ")[0]; // take only YYYY-MM-DD
+		  return d.split(" ")[1]; // take only YYYY-MM-DD
 		}
 	
 	function hideWelcome() {
@@ -465,7 +522,7 @@
             toggleTableBtn.textContent = "▼ Hide Table";
         } else {
             tableBody.style.display = "none"; // Hide table
-            toggleTableBtn.textContent = "▲ Show Table";
+            toggleTableBtn.textContent = "▼ Show Table";
         }
     });
 	
