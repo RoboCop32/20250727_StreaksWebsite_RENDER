@@ -195,8 +195,8 @@
 				
                 <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
                     <td>{{ row.streak_country }}</td>
-					<td>{{cleanDate(row.interval_start_date) }}</td>
-                    <td>{{ cleanDate(row.interval_end_date) }}</td>                    
+					<td>{cleanDate(row.interval_start_date) }</td>
+                    <td>{ cleanDate(row.interval_end_date) }</td>                    
                     <td>{{ row.day_interval }}</td>
                 </tr>
                 {% endfor %}
