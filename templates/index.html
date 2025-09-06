@@ -92,8 +92,8 @@
 	  <p>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
 	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</p>
 	  <p>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</p>
-	  <button onclick="hideWelcome()">OK</button>
-	  <p> Current leagues included: </p>
+	  <button onclick="hideWelcome()">BEGIN</button>
+	  <h2> Current leagues included: </h2>
 	  <p>
 	    <br> La Liga<br/>
 		<br> La Liga 2<br/>
@@ -143,7 +143,9 @@
 		<br> Superettan<br/>
 
 	  </p>
+	  <p>Disclaimer: Whilst every care is taken to ensure accuracy, the information provided in this website may not be complete or fully accurate. Please double-check before relying on it.</p>
 	  <p>Any issues please contact: Sodu6xuS@proton.me</p>
+	  <br></br>
 	</div>
 	
 
@@ -228,7 +230,9 @@
     <script>
 	
 	function cleanDate(d) {
-		  return d.split(" ")[1:-2]; // take only YYYY-MM-DD
+		  const arr = d.split(" ");
+		  const sliced = arr.slice(1, -1); 	
+		  return sliced; // take only YYYY-MM-DD
 		}
 	
 	function hideWelcome() {
