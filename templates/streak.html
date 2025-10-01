@@ -75,10 +75,9 @@
 </head>
 <body>
 
-
-	<div style="display:flex; gap:12px; align-items:center;">
-		<a href="/" style="text-decoration:none; border:1px solid #ddd; padding:.4rem .7rem; border-radius:10px;">← Back to filters</a>
-		<h1 style="margin:0 0 0 .25rem;">Roblox Stats Tracker</h1>
+	<div style="display:flex;gap:10px;align-items:center;margin:10px 0;">
+	  <a href="/" style="text-decoration:none;border:1px solid #ddd;padding:.4rem .7rem;border-radius:10px;">← Back to filters</a>
+	  <a href="/streak" style="display:none"></a>
 	</div>
 
 	<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 95%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 40px;" hidden>
@@ -168,7 +167,7 @@
 
 	
     <h2>Choose the amount of days between 2 fixtures that would define them as 'consecutive': (choose between 1–10)</h2>
-    <form method="POST">
+    <form method="POST" action="/streak">
         <input type="number" name="streak_gap" required min="1" max="10" placeholder="Enter Day Gap" style="width: 150px;">
         <button type="submit">Generate Football Streaks!</button>
 		

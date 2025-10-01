@@ -4,16 +4,12 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Fixture Explorer</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    :root { --gap: 16px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; }
-    header { display:flex; align-items:center; gap: 12px; margin-bottom: 16px; }
+    :root { --gap: 14px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
+    header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
     .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
     .btn:hover { background:#f0f0f0 }
     .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
@@ -24,9 +20,8 @@
     table { width:100%; border-collapse: collapse; }
     th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
     th { background:#fafafa; position: sticky; top:0; }
-    .sticky { position: sticky; top: 0; z-index: 2; background: #fff; }
     .row { display:grid; grid-template-columns: repeat(6, 1fr); gap: var(--gap); }
-    @media (max-width: 1000px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
   </style>
 </head>
 <body>
@@ -62,19 +57,17 @@
         <input type="date" id="date_to"/>
       </div>
     </div>
-    <div style="margin-top:12px; display:flex; gap:8px;">
+    <div style="margin-top:10px; display:flex; gap:8px;">
       <button class="btn" id="searchBtn">Apply filters</button>
       <button class="btn" id="clearBtn">Clear</button>
     </div>
   </div>
 
   <div class="grid">
-    <div class="card">
-      <div id="map"></div>
-    </div>
+    <div class="card"><div id="map"></div></div>
     <div class="card" style="overflow:auto; max-height: 560px;">
       <table id="tbl">
-        <thead class="sticky">
+        <thead>
           <tr>
             <th>Date</th><th>League</th><th>Home</th><th>Away</th>
             <th>Country</th><th>Stadium</th>
@@ -85,30 +78,23 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
   <script>
     const preload = {{ preload | tojson }};
-    const filterSelects = ["country", "league", "home", "away"];
-    const state = { country: "", league: "", home: "", away: "", date_from: "", date_to: "" };
-
-    // Fill with preload
-    function fillOptions(id, arr) {
+    const ids = ["country","league","home","away"];
+    function fill(id, arr) {
       const el = document.getElementById(id);
-      const v = el.value;
-      el.innerHTML = '<option value="">(any)</option>' + arr.map(x=>`<option>${x}</option>`).join('');
-      if (v) el.value = v;
+      const prev = el.value;
+      el.innerHTML = '<option value="">(any)</option>' + arr.map(v=>`<option>${v}</option>`).join('');
+      if (prev) el.value = prev;
     }
-    for (const k of Object.keys(preload)) fillOptions(k, preload[k]);
+    for (const k in preload) fill(k, preload[k]);
 
-    // Map
     let map = L.map('map');
     let markersLayer = L.layerGroup().addTo(map);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap' }).addTo(map);
     map.setView([20, 0], 2);
 
-    function getFilters() {
+    function currentFilters(){
       return {
         country: document.getElementById("country").value || "",
         league: document.getElementById("league").value || "",
@@ -119,30 +105,24 @@
       };
     }
 
-    async function fetchOptions(column) {
-      const filters = JSON.stringify(getFilters());
-      const res = await fetch(`/api/options?column=${encodeURIComponent(column)}&filters=${encodeURIComponent(filters)}`);
-      const data = await res.json();
-      return data.values || [];
-    }
-
-    async function refreshCascades() {
-      // When one filter changes, update the rest to only show valid values
-      for (const id of filterSelects) {
-        const arr = await fetchOptions(id);
-        fillOptions(id, arr);
+    async function refreshCascades(){
+      const f = encodeURIComponent(JSON.stringify(currentFilters()));
+      for (const id of ids){
+        const r = await fetch(`/api/options?column=${id}&filters=${f}`);
+        const data = await r.json();
+        fill(id, data.values || []);
       }
     }
 
-    async function search() {
-      const filters = JSON.stringify(getFilters());
-      const res = await fetch(`/api/search?filters=${encodeURIComponent(filters)}&limit=2000`);
-      const data = await res.json();
+    async function search(){
+      const f = encodeURIComponent(JSON.stringify(currentFilters()));
+      const r = await fetch(`/api/search?filters=${f}&limit=2000`);
+      const data = await r.json();
 
-      // Table
-      const tbody = document.querySelector("#tbl tbody");
-      tbody.innerHTML = "";
-      for (const r of data.rows) {
+      // table
+      const tb = document.querySelector("#tbl tbody");
+      tb.innerHTML = "";
+      (data.rows || []).forEach(r=>{
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${r.date ?? ""}</td>
@@ -150,45 +130,32 @@
           <td>${r.home ?? ""}</td>
           <td>${r.away ?? ""}</td>
           <td>${r.country ?? ""}</td>
-          <td>${r["stadium name"] ?? ""}</td>`;
-        tbody.appendChild(tr);
-      }
-
-      // Map markers
-      markersLayer.clearLayers();
-      if (data.markers && data.markers.length) {
-        const bounds = [];
-        data.markers.forEach(m => {
-          const marker = L.marker([m.lat, m.lng]).bindPopup(m.popup || "");
-          markersLayer.addLayer(marker);
-          bounds.push([m.lat, m.lng]);
-        });
-        if (bounds.length) map.fitBounds(bounds, { padding:[20,20] });
-      } else {
-        map.setView([20, 0], 2);
-      }
-    }
-
-    // Events
-    for (const id of filterSelects) {
-      document.getElementById(id).addEventListener("change", async () => {
-        await refreshCascades();
+          <td>${r["Stadium Name"] ?? r["stadium name"] ?? ""}</td>`;
+        tb.appendChild(tr);
       });
+
+      // map
+      markersLayer.clearLayers();
+      const bounds = [];
+      (data.markers || []).forEach(m=>{
+        markersLayer.addLayer(L.marker([m.lat, m.lng]).bindPopup(m.popup||""));
+        bounds.push([m.lat, m.lng]);
+      });
+      if (bounds.length) map.fitBounds(bounds, {padding:[20,20]}); else map.setView([20,0],2);
     }
+
+    // events
+    ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCascades));
     document.getElementById("searchBtn").addEventListener("click", search);
-    document.getElementById("clearBtn").addEventListener("click", async () => {
-      for (const id of filterSelects) document.getElementById(id).value = "";
+    document.getElementById("clearBtn").addEventListener("click", async ()=>{
+      ids.forEach(id => document.getElementById(id).value = "");
       document.getElementById("date_from").value = "";
       document.getElementById("date_to").value = "";
       await refreshCascades();
       await search();
     });
 
-    // Initial results
-    (async function init(){
-      await refreshCascades();
-      await search();
-    })();
+    (async function init(){ await refreshCascades(); await search(); })();
   </script>
 </body>
 </html>

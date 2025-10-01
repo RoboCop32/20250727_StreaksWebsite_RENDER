@@ -21,7 +21,7 @@
 When users submit input (e.g., through a form or URL), you must make sure it doesn’t contain malicious content — especially when used in SQL queries.
 '''
 
-from flask import Flask, render_template, request, Markup, jsonify, session
+from flask import Flask, render_template, request, Markup, jsonify, session, render_template_string
 from flask import g
 
 import os
@@ -56,6 +56,18 @@ engine1 = create_engine(db_url)
 main_table_name = "fixtures_stadium_combined_20250901"
 
 show_lines = True  # Default: Show arrows
+
+# ===== NEW: config for filter page =====
+DATA_TABLE = main_table_name  # uses your existing main table
+FILTER_COLUMNS = ["country", "league", "home", "away"]  # add more if you want (e.g. "Team Name")
+RESULT_COLUMNS = [
+    "unique_id", "date", "time", "league", "home", "away", "country",
+    "stadium_id", "Team Name", "Stadium Name", "Longitude", "Latitude"
+]
+
+def q(col: str) -> str:
+    # safe double-quote for mixed‑case / spaces
+    return '"' + col.replace('"', '""') + '"'
 
 def retrieve_sql_table(engine, table_name):
     query = text(f'SELECT * FROM "{table_name}"')
@@ -351,8 +363,8 @@ def load_data():
         
         
 
-@app.route("/", methods=["GET", "POST"]) #so this is the Main page. Each flask route is mapped to a specific URL, and executes a python function when accessed
-def index():
+@app.route("/streak", methods=["GET", "POST"]) #so this is the Main page. Each flask route is mapped to a specific URL, and executes a python function when accessed
+def streak():
     combined_streak_view = "combined_stadium_streaks_view2"
     map_html = None
     error_message = None
@@ -524,5 +536,109 @@ def zoom(lat,lon):
     #m.save("templates/map.html")
     
     return Markup(m)
+    
+@app.route("/", methods=["GET"])
+def filter_home():
+    # Preload distincts so dropdowns aren’t empty on first load
+    with engine1.connect() as conn:
+        def distinct(col):
+            sql = text(f"SELECT DISTINCT {q(col)} AS v FROM {q(DATA_TABLE)} "
+                       f"WHERE {q(col)} IS NOT NULL ORDER BY 1")
+            rows = conn.execute(sql).mappings().all()
+            return [r["v"] for r in rows if r["v"] is not None]
+
+        preload = {
+            "country": distinct("country"),
+            "league": distinct("league"),
+            "home": distinct("home"),
+            "away": distinct("away"),
+        }
+
+    return render_template("filters.html", preload=preload)
+
+
+def _build_where_and_params(filters: dict):
+    clauses = []
+    params = {}
+    for key, val in filters.items():
+        if val in (None, "", []):
+            continue
+        if key in ("date_from", "date_to"):
+            if key == "date_from":
+                clauses.append(f"{q('date')} >= :date_from")
+                params["date_from"] = val
+            else:
+                clauses.append(f"{q('date')} <= :date_to")
+                params["date_to"] = val
+        else:
+            clauses.append(f"{q(key)} = :{key}")
+            params[key] = val
+    where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return where_sql, params
+
+
+@app.get("/api/options")
+def api_options():
+    # ?column=league&filters=<json>
+    column = request.args.get("column")
+    if column not in FILTER_COLUMNS:
+        return jsonify({"values": []}), 400
+
+    import json
+    try:
+        filters = json.loads(request.args.get("filters") or "{}")
+    except Exception:
+        filters = {}
+
+    where_sql, params = _build_where_and_params(filters)
+    # ensure NULLs excluded and make combos cascade
+    sql = text(
+        f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
+        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL ORDER BY 1"
+    )
+    with engine1.connect() as conn:
+        rows = conn.execute(sql, params).mappings().all()
+    return jsonify({"values": [r["v"] for r in rows if r["v"] is not None]})
+
+
+@app.get("/api/search")
+def api_search():
+    # ?filters=<json>&limit=2000
+    import json
+    try:
+        filters = json.loads(request.args.get("filters") or "{}")
+    except Exception:
+        filters = {}
+    limit = max(1, min(int(request.args.get("limit", 1000)), 5000))
+
+    where_sql, params = _build_where_and_params(filters)
+    cols_sql = ", ".join(q(c) for c in RESULT_COLUMNS)
+    sql = text(
+        f"SELECT {cols_sql} FROM {q(DATA_TABLE)}{where_sql} "
+        f"ORDER BY {q('date')} DESC LIMIT :lim"
+    )
+    params["lim"] = limit
+    with engine1.connect() as conn:
+        rows = conn.execute(sql, params).mappings().all()
+
+    # craft markers from Lat/Lon if present
+    markers, table_rows = [], []
+    for r in rows:
+        item = dict(r)
+        table_rows.append(item)
+        lat = item.get("Latitude")
+        lon = item.get("Longitude")
+        if lat is not None and lon is not None:
+            markers.append({
+                "lat": float(item["Latitude"]),
+                "lng": float(item["Longitude"]),
+                "popup": f"{item.get('Stadium Name') or ''} — "
+                         f"{item.get('home') or ''} vs {item.get('away') or ''} "
+                         f"({item.get('date')})"
+            })
+
+    return jsonify({"rows": table_rows, "markers": markers})    
+    
+    
 if __name__ == "__main__":
     app.run(debug=False)
