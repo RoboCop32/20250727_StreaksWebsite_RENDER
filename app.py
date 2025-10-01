@@ -392,7 +392,7 @@ def streak():
             except ValueError:
                 error_message = "Invalid Streak Gap. Please enter a number."
 
-    return render_template("index.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
+    return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
 def get_streak(streak_id):

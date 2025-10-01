@@ -386,7 +386,7 @@
 				const orderLabels = orderMap[id].join(","); // e.g. "2,6"
 				
 				// Apply jitter
-				const jitterAmount = 0.006; //this is what we adjust
+				const jitterAmount = 0.00; //this is what we adjust
 				const jitter = () => (Math.random() - 0.5) * 2 * jitterAmount;
 				
 				const jitteredLat = lat + jitter();
