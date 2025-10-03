@@ -439,7 +439,7 @@
                 fetch(`/get_streak/${id}`).then(res => res.json()).then(data => {
                     originalData = data.df_data;
 
-                    filteredData = data.filtered_data;
+                    filteredData = data.filtered_data; //this actually worked holy moly
 
                     const tbody = document.querySelector("#filtered-data-table tbody");
                     tbody.innerHTML = "";
