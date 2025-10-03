@@ -174,7 +174,7 @@ def find_optimum_stadiums(gdf):
 
     categories = gdf['date'].unique()
     
-    categories.sort() #sort the cateogires!
+   # categories.sort() #sort the cateogires! hmm perhaps not u get an error
     
     groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
 
