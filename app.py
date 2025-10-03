@@ -227,7 +227,7 @@ def find_optimum_stadiums(gdf):
     
 def find_optimum_stadiums(gdf):
 
-    gdf = gdf[gdf["geom"]!= None].sort_values("date")
+    gdf = gdf[(gdf["geometry"] != None) & (gdf["geometry"] != 'None') & (gdf["geometry"] != "")].sort_values("date")
 
     categories = gdf['date'].unique()
     
