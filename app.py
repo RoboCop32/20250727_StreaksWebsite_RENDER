@@ -162,7 +162,7 @@ def retrieve_streak(streak_id, engine, view_name):
 
 def convert_sql_to_gdf(df, geom_column):
     """Convert a SQL DataFrame to a GeoDataFrame using the given geometry column."""
-    df = df[df[geom_column]!= None]
+    df = df[(df["geometry"] != None) & (df["geometry"] != 'None') & (df["geometry"] != "")]
     df['geometry'] = df[geom_column].str.replace(',', ' ').apply(loads)  
     gdf = gpd.GeoDataFrame(df, geometry=df['geometry'], crs="EPSG:4326")
     gdf["latitude"] = gdf.geometry.y
@@ -171,7 +171,7 @@ def convert_sql_to_gdf(df, geom_column):
 
 def find_optimum_stadiums(gdf):
 
-    gdf = gdf[gdf["geometry"]!= None].sort_values("date")
+    gdf = gdf[(gdf["geometry"] != None) & (gdf["geometry"] != 'None') & (gdf["geometry"] != "")].sort_values("date")
 
     categories = gdf['date'].unique()
     
