@@ -222,7 +222,7 @@ def find_optimum_stadiums(gdf):
     # Calculate the shortest route
     
     names_list = [name for _, name in route]
-   
+    print(route,total_distance,names_list)
     return route,total_distance,names_list
 
 
@@ -422,7 +422,7 @@ def get_streak(streak_id):
 
     
     gdf = convert_sql_to_gdf(filtered_df, 'Stadium Location').sort_values("date")
-    print(gdf)
+    
     route, distance, names_list = find_optimum_stadiums(gdf)
     gdf_filtered = gdf[gdf['unique_id'].isin(names_list)]
 
