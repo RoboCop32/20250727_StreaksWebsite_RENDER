@@ -169,60 +169,60 @@ def convert_sql_to_gdf(df, geom_column):
     return gdf
 
 def find_optimum_stadiums(gdf):
-    
+
+    gdf = gdf[gdf["geom"]!= None].sort_values("date")
+
     categories = gdf['date'].unique()
-
-    gdf = gdf[gdf["geometry"]!= None].sort_values("date")
-
+    
+    categories.sort() #sort the cateogires!
+    
     groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
 
-    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}
+    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}  #so here we have a dict with date: list of fixtures
 
     # Extract coordinates for distance calculations
-    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()}
+    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()} #and as abov but with coords
 
-    #print(coords,date_categories)
-    
-    # Function to find the shortest route
-    
     route = []
     total_distance = 0
 
-    # Start at the red category
+    # Start at the first category
     current_coords = np.array(coords[categories[0]])
     current_names = names[categories[0]]
-
+    
+    #so we itrate through the date: coords dicitonaries, calculate distance tables for all of them, then get the minimum distnace
+    
     for i in range(len(categories) - 1):
-        next_category = categories[i + 1]
+        next_category = categories[i + 1] #so this does go to the next date
         next_coords = np.array(coords[next_category])
-        next_names = names[next_category]
+        next_names = names[next_category] #and this does get the next names
 
         # Calculate pairwise distances
         distances = cdist(current_coords, next_coords)
+
         min_dist_idx = np.unravel_index(distances.argmin(), distances.shape)
 
         # Append the chosen point's name to the route and update total distance
         route.append((categories[i], current_names[min_dist_idx[0]]))
         total_distance += distances[min_dist_idx]
 
+        #if we are at the last iteration (-2): apend the next category, and get the index in the Next names, using the End value of the min dist index [1]to get the destination from the next list
+        if i == (len(categories) - 2):
+            route.append((categories[i+1], next_names[min_dist_idx[1]])) # to get the last one too
+
         # Update current_coords and current_names to the selected next point
         current_coords = next_coords[[min_dist_idx[1]], :]
         current_names = [next_names[min_dist_idx[1]]]
 
         # Add the final point
-        route.append((categories[-1], current_names[0]))
+    #route.append((categories[-1], current_names[0])) # i removed this line. firstly it was in the for loop when it was supposed to be. secondly, doesnt accurately get the best distace in the last one
 
         
 
     # Calculate the shortest route
     
-
     names_list = [name for _, name in route]
-    
-    #print("Route (category and name):", route)
-    print("Total Distance:", total_distance)
-    print(names_list)
-    
+   
     return route,total_distance,names_list
 
 
