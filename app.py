@@ -597,6 +597,8 @@ def zoom(lat,lon):
 
 @app.route("/get_filtered_route")
 def get_filtered_route():
+    gdf_filtered = app.config["gdf_filtered"]
+
     gdf = gdf[gdf["geom"]!= None].sort_values("date")
 
     categories = gdf['date'].unique()
