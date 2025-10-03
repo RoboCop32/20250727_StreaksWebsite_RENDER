@@ -279,11 +279,8 @@ def find_optimum_stadiums(gdf):
     
     names_list = [name for _, name in route]
     print(route,total_distance,names_list)
-    return {
-        "route": [{"date": date, "id": uid} for date, uid in route],
-        "total_distance": float(total_distance),
-        "names_list": names_list
-    }
+    return route,total_distance,names_list
+
 
 
 def split_streak_table(streak_table):
