@@ -223,7 +223,67 @@ def find_optimum_stadiums(gdf):
     
     names_list = [name for _, name in route]
     print(route,total_distance,names_list)
-    return route,total_distance,names_list
+    
+def find_optimum_stadiums(gdf):
+
+    gdf = gdf[gdf["geom"]!= None].sort_values("date")
+
+    categories = gdf['date'].unique()
+    
+   # categories.sort() #sort the cateogires! hmm perhaps not u get an error
+    
+    groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
+
+    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}  #so here we have a dict with date: list of fixtures
+
+    # Extract coordinates for distance calculations
+    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()} #and as abov but with coords
+
+    route = []
+    total_distance = 0
+
+    # Start at the first category
+    current_coords = np.array(coords[categories[0]])
+    current_names = names[categories[0]]
+    
+    #so we itrate through the date: coords dicitonaries, calculate distance tables for all of them, then get the minimum distnace
+    
+    for i in range(len(categories) - 1):
+        next_category = categories[i + 1] #so this does go to the next date
+        next_coords = np.array(coords[next_category])
+        next_names = names[next_category] #and this does get the next names
+
+        # Calculate pairwise distances
+        distances = cdist(current_coords, next_coords)
+
+        min_dist_idx = np.unravel_index(distances.argmin(), distances.shape)
+
+        # Append the chosen point's name to the route and update total distance
+        route.append((categories[i], current_names[min_dist_idx[0]]))
+        total_distance += distances[min_dist_idx]
+
+        #if we are at the last iteration (-2): apend the next category, and get the index in the Next names, using the End value of the min dist index [1]to get the destination from the next list
+        if i == (len(categories) - 2):
+            route.append((categories[i+1], next_names[min_dist_idx[1]])) # to get the last one too
+
+        # Update current_coords and current_names to the selected next point
+        current_coords = next_coords[[min_dist_idx[1]], :]
+        current_names = [next_names[min_dist_idx[1]]]
+
+        # Add the final point
+    #route.append((categories[-1], current_names[0])) # i removed this line. firstly it was in the for loop when it was supposed to be. secondly, doesnt accurately get the best distace in the last one
+
+        
+
+    # Calculate the shortest route
+    
+    names_list = [name for _, name in route]
+    print(route,total_distance,names_list)
+    return {
+        "route": [{"date": date, "id": uid} for date, uid in route],
+        "total_distance": float(total_distance),
+        "names_list": names_list
+    }
 
 
 def split_streak_table(streak_table):
@@ -540,49 +600,64 @@ def zoom(lat,lon):
 
 @app.route("/get_filtered_route")
 def get_filtered_route():
-    if "gdf_filtered" not in app.config:
-        return jsonify([])
+    gdf = gdf[gdf["geom"]!= None].sort_values("date")
 
-    gdf = app.config["gdf_filtered"].copy()
-    if gdf.empty:
-        return jsonify([])
+    categories = gdf['date'].unique()
+    
+   # categories.sort() #sort the cateogires! hmm perhaps not u get an error
+    
+    groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
 
-    # Ensure datetime is stringified and coordinates are extracted
-    gdf["date"] = gdf["date"].astype(str)
-    gdf["latitude"] = gdf.geometry.y
-    gdf["longitude"] = gdf.geometry.x
+    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}  #so here we have a dict with date: list of fixtures
 
-    # Group by date and apply route filter like in JS
-    grouped = {date: df for date, df in gdf.groupby("date")}
-    dates = sorted(grouped.keys())
+    # Extract coordinates for distance calculations
+    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()} #and as abov but with coords
 
-    result_rows = []
+    route = []
+    total_distance = 0
 
-    for i in range(len(dates)):
-        curr_df = grouped[dates[i]]
-        next_df = grouped[dates[i + 1]] if i + 1 < len(dates) else None
+    # Start at the first category
+    current_coords = np.array(coords[categories[0]])
+    current_names = names[categories[0]]
+    
+    #so we itrate through the date: coords dicitonaries, calculate distance tables for all of them, then get the minimum distnace
+    
+    for i in range(len(categories) - 1):
+        next_category = categories[i + 1] #so this does go to the next date
+        next_coords = np.array(coords[next_category])
+        next_names = names[next_category] #and this does get the next names
 
-        # Default to first row in group
-        best_row = curr_df.iloc[0]
-        min_dist = float("inf")
+        # Calculate pairwise distances
+        distances = cdist(current_coords, next_coords)
 
-        if next_df is not None:
-            for _, a in curr_df.iterrows():
-                for _, b in next_df.iterrows():
-                    d = haversine(a.geometry.y, a.geometry.x, b.geometry.y, b.geometry.x)
-                    if d < min_dist:
-                        min_dist = d
-                        best_row = a
+        min_dist_idx = np.unravel_index(distances.argmin(), distances.shape)
 
-        result_rows.append({
-            "date": best_row["date"],
-            "id": best_row.get("unique_id") or best_row.get("id"),
-            "latitude": best_row.geometry.y,
-            "longitude": best_row.geometry.x,
-            # Include other fields if needed
-        })
+        # Append the chosen point's name to the route and update total distance
+        route.append((categories[i], current_names[min_dist_idx[0]]))
+        total_distance += distances[min_dist_idx]
 
-    return jsonify(result_rows)
+        #if we are at the last iteration (-2): apend the next category, and get the index in the Next names, using the End value of the min dist index [1]to get the destination from the next list
+        if i == (len(categories) - 2):
+            route.append((categories[i+1], next_names[min_dist_idx[1]])) # to get the last one too
+
+        # Update current_coords and current_names to the selected next point
+        current_coords = next_coords[[min_dist_idx[1]], :]
+        current_names = [next_names[min_dist_idx[1]]]
+
+        # Add the final point
+    #route.append((categories[-1], current_names[0])) # i removed this line. firstly it was in the for loop when it was supposed to be. secondly, doesnt accurately get the best distace in the last one
+
+        
+
+    # Calculate the shortest route
+    
+    names_list = [name for _, name in route]
+    print(route,total_distance,names_list)
+    return {
+        "route": [{"date": date, "id": uid} for date, uid in route],
+        "total_distance": float(total_distance),
+        "names_list": names_list
+    }
     
 @app.route("/", methods=["GET"])
 def filter_home():
