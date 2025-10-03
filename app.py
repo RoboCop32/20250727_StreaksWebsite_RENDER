@@ -162,7 +162,7 @@ def retrieve_streak(streak_id, engine, view_name):
 
 def convert_sql_to_gdf(df, geom_column):
     """Convert a SQL DataFrame to a GeoDataFrame using the given geometry column."""
-    df = df[(df["geometry"] != None) & (df["geometry"] != 'None') & (df["geometry"] != "")]
+    df = df[(df[geom_column] != None) & (df[geom_column] != 'None') & (df[geom_column] != "")]
     df['geometry'] = df[geom_column].str.replace(',', ' ').apply(loads)  
     gdf = gpd.GeoDataFrame(df, geometry=df['geometry'], crs="EPSG:4326")
     gdf["latitude"] = gdf.geometry.y
