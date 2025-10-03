@@ -597,66 +597,18 @@ def zoom(lat,lon):
 
 @app.route("/get_filtered_route")
 def get_filtered_route():
-    gdf = app.config["gdf_filtered"]
 
-    gdf = gdf[gdf["geom"]!= None].sort_values("date")
-
-    categories = gdf['date'].unique()
+    gdf_filtered = app.config['gdf_filtered']
+    #don't do ipalce = True because this returns NAN. and also, json can't handle nulls, so we need to replace them with None
+    df_data_dict=gdf_filtered.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
     
-   # categories.sort() #sort the cateogires! hmm perhaps not u get an error
-    
-    groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
-
-    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}  #so here we have a dict with date: list of fixtures
-
-    # Extract coordinates for distance calculations
-    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()} #and as abov but with coords
-
-    route = []
-    total_distance = 0
-
-    # Start at the first category
-    current_coords = np.array(coords[categories[0]])
-    current_names = names[categories[0]]
-    
-    #so we itrate through the date: coords dicitonaries, calculate distance tables for all of them, then get the minimum distnace
-    
-    for i in range(len(categories) - 1):
-        next_category = categories[i + 1] #so this does go to the next date
-        next_coords = np.array(coords[next_category])
-        next_names = names[next_category] #and this does get the next names
-
-        # Calculate pairwise distances
-        distances = cdist(current_coords, next_coords)
-
-        min_dist_idx = np.unravel_index(distances.argmin(), distances.shape)
-
-        # Append the chosen point's name to the route and update total distance
-        route.append((categories[i], current_names[min_dist_idx[0]]))
-        total_distance += distances[min_dist_idx]
-
-        #if we are at the last iteration (-2): apend the next category, and get the index in the Next names, using the End value of the min dist index [1]to get the destination from the next list
-        if i == (len(categories) - 2):
-            route.append((categories[i+1], next_names[min_dist_idx[1]])) # to get the last one too
-
-        # Update current_coords and current_names to the selected next point
-        current_coords = next_coords[[min_dist_idx[1]], :]
-        current_names = [next_names[min_dist_idx[1]]]
-
-        # Add the final point
-    #route.append((categories[-1], current_names[0])) # i removed this line. firstly it was in the for loop when it was supposed to be. secondly, doesnt accurately get the best distace in the last one
-
+    print(type(df_data_dict),'3333',df_data_dict)
+    map_html = plot_streak_map(gdf_filtered, 0.005)
+    result = df_data_dict
         
-
-    # Calculate the shortest route
     
-    names_list = [name for _, name in route]
-    print(route,total_distance,names_list)
-    return {
-        "route": [{"date": date, "id": uid} for date, uid in route],
-        "total_distance": float(total_distance),
-        "names_list": names_list
-    }
+    
+    return jsonify(result)
     
 @app.route("/", methods=["GET"])
 def filter_home():
