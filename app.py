@@ -536,6 +536,53 @@ def zoom(lat,lon):
     #m.save("templates/map.html")
     
     return Markup(m)
+
+
+@app.route("/get_filtered_route")
+def get_filtered_route():
+    if "gdf_filtered" not in app.config:
+        return jsonify([])
+
+    gdf = app.config["gdf_filtered"].copy()
+    if gdf.empty:
+        return jsonify([])
+
+    # Ensure datetime is stringified and coordinates are extracted
+    gdf["date"] = gdf["date"].astype(str)
+    gdf["latitude"] = gdf.geometry.y
+    gdf["longitude"] = gdf.geometry.x
+
+    # Group by date and apply route filter like in JS
+    grouped = {date: df for date, df in gdf.groupby("date")}
+    dates = sorted(grouped.keys())
+
+    result_rows = []
+
+    for i in range(len(dates)):
+        curr_df = grouped[dates[i]]
+        next_df = grouped[dates[i + 1]] if i + 1 < len(dates) else None
+
+        # Default to first row in group
+        best_row = curr_df.iloc[0]
+        min_dist = float("inf")
+
+        if next_df is not None:
+            for _, a in curr_df.iterrows():
+                for _, b in next_df.iterrows():
+                    d = haversine(a.geometry.y, a.geometry.x, b.geometry.y, b.geometry.x)
+                    if d < min_dist:
+                        min_dist = d
+                        best_row = a
+
+        result_rows.append({
+            "date": best_row["date"],
+            "id": best_row.get("unique_id") or best_row.get("id"),
+            "latitude": best_row.geometry.y,
+            "longitude": best_row.geometry.x,
+            # Include other fields if needed
+        })
+
+    return jsonify(result_rows)
     
 @app.route("/", methods=["GET"])
 def filter_home():

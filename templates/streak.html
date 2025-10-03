@@ -438,7 +438,14 @@
                 const id = tr.dataset.streakId;
                 fetch(`/get_streak/${id}`).then(res => res.json()).then(data => {
                     originalData = data.df_data;
-                    filteredData = applyFilter(originalData);
+					fetch("/get_filtered_route")
+					  .then(res => res.json())
+					  .then(data => {
+						const filteredData = data;  // This is now an array of {date, id, latitude, longitude}
+						console.log("Filtered route:", filtered);
+						// Use this directly in your table/map/route renderer
+					  });
+                    //filteredData = applyFilter(originalData);
 
                     const tbody = document.querySelector("#filtered-data-table tbody");
                     tbody.innerHTML = "";
