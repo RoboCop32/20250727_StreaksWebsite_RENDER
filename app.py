@@ -488,6 +488,7 @@ def get_streak(streak_id):
     
     #don't do ipalce = True because this returns NAN. and also, json can't handle nulls, so we need to replace them with None
     df_data_dict=gdf.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
+    filtered_data_dict = gdf_filtered.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
     
     print(type(df_data_dict),'444444',df_data_dict)
     map_html = plot_streak_map(gdf, 0.005)
@@ -496,6 +497,7 @@ def get_streak(streak_id):
     result = {
         'map_html': str(map_html),
         'df_data': df_data_dict,
+        'filtered_data':filtered_data_dict
         
     }
     
@@ -604,9 +606,11 @@ def get_filtered_route():
     
     print(type(df_data_dict),'3333',df_data_dict)
     map_html = plot_streak_map(gdf_filtered, 0.005)
-    result = df_data_dict
+    result = {
+        'map_html': str(map_html),
+        'df_data': df_data_dict,
         
-    
+    }
     
     return jsonify(result)
     
