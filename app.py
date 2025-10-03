@@ -170,7 +170,7 @@ def convert_sql_to_gdf(df, geom_column):
 
 def find_optimum_stadiums(gdf):
 
-    gdf = gdf[gdf["geom"]!= None].sort_values("date")
+    gdf = gdf[gdf["geometry"]!= None].sort_values("date")
 
     categories = gdf['date'].unique()
     
