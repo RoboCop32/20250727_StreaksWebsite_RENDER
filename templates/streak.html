@@ -442,7 +442,7 @@
 					  .then(res => res.json())
 					  .then(data => {
 						const filteredData = data;  // This is now an array of {date, id, latitude, longitude}
-						console.log("Filtered route:", filtered);
+						console.log("Filtered route:", filteredData);
 						// Use this directly in your table/map/route renderer
 					  });
                     //filteredData = applyFilter(originalData);
