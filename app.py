@@ -327,7 +327,7 @@ def retrieve_streaks(my_table, day_interval, engine):
 
 
 
-def plot_streak_map(gdf, jitter_amount=0.005, arrows=False, width="1000px", height="600px", long=None, lat=None, myzoom=8):
+def plot_streak_map(gdf, jitter_amount=0.01, arrows=False, width="1000px", height="600px", long=None, lat=None, myzoom=8):
     """Generate an interactive Folium map where markers can be accessed via JavaScript."""
 
     if gdf is None or gdf.empty:
@@ -641,6 +641,7 @@ def _build_where_and_params(filters: dict):
     for key, val in filters.items():
         if val in (None, "", []):
             continue
+
         if key in ("date_from", "date_to"):
             if key == "date_from":
                 clauses.append(f"{q('date')} >= :date_from")
@@ -648,14 +649,20 @@ def _build_where_and_params(filters: dict):
             else:
                 clauses.append(f"{q('date')} <= :date_to")
                 params["date_to"] = val
+            continue
+
+        # Multi-select → list: use ANY(CAST(:param AS text[]))
+        if isinstance(val, list):
+            # Ensure pure strings (no None)
+            cleaned = [v for v in val if v not in (None, "")]
+            if not cleaned:
+                continue
+            clauses.append(f"{q(key)} = ANY(CAST(:{key} AS TEXT[]))")
+            params[key] = cleaned
         else:
-            # if multi-select (list), use ANY(array) in Postgres
-            if isinstance(val, list):
-                clauses.append(f"{q(key)} = ANY(:{key})")
-                params[key] = val  # SQLAlchemy/psycopg2 will send as array
-            else:
-                clauses.append(f"{q(key)} = :{key}")
-                params[key] = val
+            clauses.append(f"{q(key)} = :{key}")
+            params[key] = val
+
     where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     return where_sql, params
 

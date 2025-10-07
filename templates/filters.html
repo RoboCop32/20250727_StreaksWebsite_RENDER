@@ -31,9 +31,25 @@
 	  <h2 style="margin:0">Fixture Explorer</h2>
 	  <div style="display:flex; gap:8px;">
 		<a class="btn" href="/streak">Go to streak page</a>
-		<button id="info-btn" class="btn btn-primary" title="About this app">i</button>
+		<!--<button id="info-btn" class="btn btn-primary" title="About this app" style='z-index: 9990'>i</button>-->
 	  </div>
 	</header>
+	
+	<button id="info-btn" class="btn btn-primary" title="About this app" style="
+	  position: fixed;
+	  top: 10px;
+	  style='z-index: 9990'
+	  right: 10px;
+	  margin: 10px;
+	  padding: 10px 15px;
+	  font-size: 16px;
+	  
+	  color: white;
+	  border: none;
+	  border-radius: 5px;
+	">
+	  i
+	</button>
 	
 	<!-- Welcome / info overlay -->
 	<div id="welcome-screen" style="
@@ -126,19 +142,19 @@
     <div class="row">
       <div>
         <label>Country</label>
-        <select id="country" multiple><option value="">(any)</option></select>
+        <select id="country" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
         <label>League</label>
-        <select id="league" multiple><option value="">(any)</option></select>
+        <select id="league" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
         <label>Home Team</label>
-        <select id="home" multiple><option value="">(any)</option></select>
+        <select id="home" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
         <label>Away Team</label>
-        <select id="away" multiple><option value="">(any)</option></select>
+        <select id="away" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
         <label>Date from</label>
@@ -380,7 +396,20 @@ async function refreshCascades(){
 	  document.getElementById("info-btn").addEventListener("click", showWelcomeAgain);
 	  document.getElementById("begin-btn").addEventListener("click", hideWelcome);
 	});
-
+	function enableToggleMulti(id){
+  const el = document.getElementById(id);
+  // Toggle the clicked option instead of replacing selection
+  el.addEventListener('mousedown', (e) => {
+    const opt = e.target;
+    if (opt && opt.tagName === 'OPTION') {
+      e.preventDefault();              // stop default replace behavior
+      opt.selected = !opt.selected;    // toggle selection
+      // fire change so cascades/search can react if needed
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+}
+["country","league","home","away"].forEach(enableToggleMulti);
   </script>
 </body>
 </html>
