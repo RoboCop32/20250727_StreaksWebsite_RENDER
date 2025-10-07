@@ -114,35 +114,102 @@
       }
     }
 
-    async function search(){
-      const f = encodeURIComponent(JSON.stringify(currentFilters()));
-      const r = await fetch(`/api/search?filters=${f}&limit=2000`);
-      const data = await r.json();
+  // Reusable palette (same style as streaks)
+  const COLORS = ["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#911eb4","#46f0f0",
+                  "#f032e6","#bcf60c","#fabebe","#008080","#e6beff","#9a6324","#fffac8",
+                  "#800000","#aaffc3","#808000","#ffd8b1","#000075","#808080"];
 
-      // table
-      const tb = document.querySelector("#tbl tbody");
-      tb.innerHTML = "";
-      (data.rows || []).forEach(r=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.date ?? ""}</td>
-          <td>${r.league ?? ""}</td>
-          <td>${r.home ?? ""}</td>
-          <td>${r.away ?? ""}</td>
-          <td>${r.country ?? ""}</td>
-          <td>${r["Stadium Name"] ?? r["stadium name"] ?? ""}</td>`;
-        tb.appendChild(tr);
+  let markersById = {}; // unique_id -> circleMarker
+
+  function cleanDate(d) {
+    // accept ISO or "YYYY-MM-DD..." or Date obj
+    if (!d) return "";
+    const s = String(d);
+    // if it's like "Mon Jan 01 2025 00:00:00 GMT..." take only date part we expect
+    // fallback: return s
+    const m = s.match(/\d{4}-\d{2}-\d{2}/);
+    return m ? m[0] : s;
+  }
+
+  async function search(){
+    const f = encodeURIComponent(JSON.stringify(currentFilters()));
+    const r = await fetch(`/api/search?filters=${f}&limit=2000`);
+    const data = await r.json();
+
+    // ------------------ TABLE ------------------
+    const tb = document.querySelector("#tbl tbody");
+    tb.innerHTML = "";
+
+    // build unique dates (sorted) to color markers consistently
+    const rows = (data.rows || []);
+    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort();
+    const dateColors = {};
+    dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
+
+    // ------------------ MAP --------------------
+    markersLayer.clearLayers();
+    markersById = {};
+    const bounds = [];
+
+    // build table + events + markers together so we share unique_id
+    rows.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.dataset.id = item.unique_id;
+      tr.dataset.lat = item.Latitude ?? item.latitude ?? "";
+      tr.dataset.lon = item.Longitude ?? item.longitude ?? "";
+
+      tr.innerHTML = `
+        <td>${cleanDate(item.date) || ""}</td>
+        <td>${item.league ?? ""}</td>
+        <td>${item.home ?? ""}</td>
+        <td>${item.away ?? ""}</td>
+        <td>${item.country ?? ""}</td>
+        <td>${item["Stadium Name"] ?? item["stadium name"] ?? ""}</td>`;
+      tb.appendChild(tr);
+
+      // Make circleMarker like Streaks page (if coords exist)
+      const lat = Number(item.Latitude ?? item.latitude);
+      const lon = Number(item.Longitude ?? item.longitude);
+      if (!isNaN(lat) && !isNaN(lon)){
+        const color = dateColors[item.date] || "#999";
+        const marker = L.circleMarker([lat, lon], {
+          radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
+        }).bindPopup(
+          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${cleanDate(item.date)})`
+        );
+
+        markersLayer.addLayer(marker);
+        markersById[item.unique_id] = marker;
+        bounds.push([lat, lon]);
+      }
+
+      // Hover row -> highlight marker
+      tr.addEventListener("mouseover", () => {
+        const m = markersById[item.unique_id];
+        if (m) m.setStyle({ color: 'yellow', radius: 12 });
+      });
+      tr.addEventListener("mouseout", () => {
+        const m = markersById[item.unique_id];
+        if (m) m.setStyle({ color: 'black', radius: 6 });
       });
 
-      // map
-      markersLayer.clearLayers();
-      const bounds = [];
-      (data.markers || []).forEach(m=>{
-        markersLayer.addLayer(L.marker([m.lat, m.lng]).bindPopup(m.popup||""));
-        bounds.push([m.lat, m.lng]);
+      // Click row -> zoom + open popup
+      tr.addEventListener("click", () => {
+        const m = markersById[item.unique_id];
+        if (m) {
+          const latLng = m.getLatLng();
+          map.setView(latLng, 10, { animate: true });
+          m.openPopup();
+        }
       });
-      if (bounds.length) map.fitBounds(bounds, {padding:[20,20]}); else map.setView([20,0],2);
+    });
+
+    if (bounds.length) {
+      map.fitBounds(bounds, {padding:[20,20]});
+    } else {
+      map.setView([20,0],2);
     }
+  }
 
     // events
     ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCascades));
@@ -155,7 +222,15 @@
       await search();
     });
 
-    (async function init(){ await refreshCascades(); await search(); })();
+      (async function init(){
+    await refreshCascades();
+    // removed: await search(); // <- don't auto-load fixtures
+    // keep the map global view
+    markersLayer.clearLayers();
+    map.setView([20,0],2);
+    document.querySelector("#tbl tbody").innerHTML = ""; // ensure table starts empty
+  })();
+
   </script>
 </body>
 </html>

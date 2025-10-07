@@ -7,77 +7,49 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .map-container {
-            width: 1000px;
-            height: 600px;
-            margin: 20px auto;
-            display: none;
-            border: 2px solid black;
-        }
-        table {
-            width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #222;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #filtered-table-section {
-            display: none;
-        }
+  :root { --gap: 14px; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
+  header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
+  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
+  .btn:hover { background:#f0f0f0 }
+  .grid { display:grid; grid-template-columns: 1fr; gap: var(--gap); }
+  .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff }
+  label { display:block; font-size:.85rem; color:#555; margin-bottom:4px; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
+  th { background:#fafafa; position: sticky; top:0; }
+  .row { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
+  .map-container { width:100%; height: 600px; display:none; border-radius:12px; }
+  #controls { display:flex; gap:8px; }
+  .btn-primary { background:#0a7; color:#fff; border-color:#0a7; }
+  .btn-primary:hover { filter: brightness(0.95); }
 
-		#welcome-screen.hidden {
-		  opacity: 0;
-		  pointer-events: none;
-		}
-		
-
-		
-		.info.legend {
-		  background: white;
-		  padding: 8px 12px;
-		  border-radius: 8px;
-		  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-		  font-size: 14px;
-		  line-height: 18px;
-		  text-align: left;
-		}
-		.info.legend h4 {
-		  margin: 0 0 5px;
-		  font-size: 14px;
-		}
+  /* existing */
+  #filtered-table-section { display:none; }
+  #welcome-screen.hidden { opacity:0; pointer-events:none; }
+  .info.legend {
+    background: white; padding: 8px 12px; border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3); font-size: 14px; line-height: 18px; text-align: left;
+  }
+  .info.legend h4 { margin: 0 0 5px; font-size: 14px; }
+</style>
 		
 		
     </style>
 </head>
 <body>
 
-	<div style="display:flex;gap:10px;align-items:center;margin:10px 0;">
-	  <a href="/" style="text-decoration:none;border:1px solid #ddd;padding:.4rem .7rem;border-radius:10px;">← Back to filters</a>
-	  <a href="/streak" style="display:none"></a>
+	<header>
+	  <h2 style="margin:0">Streak Finder</h2>
+	  <a class="btn" href="/">← Back to filters</a>
+	</header>
+
+	<div class="card">
+	  <h3 style="margin: 0 0 8px;">Choose the day gap (1–10)</h3>
+	  <form method="POST" action="/streak" style="display:flex; gap:8px; align-items:center;">
+		<input type="number" name="streak_gap" required min="1" max="10" placeholder="Enter Day Gap" style="width: 150px;">
+		<button type="submit" class="btn btn-primary">Generate Football Streaks</button>
+	  </form>
 	</div>
 
 	<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 95%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 40px;" hidden>
@@ -190,57 +162,61 @@
     {% if streak_shown %}
 
 
+	<div class="grid">
+		<div class="card">
+			<div id="data-table-container">
+				<table id="data-table">
+					<thead>
+					<tr>
+						<th colspan="5">
+							<button id="toggle-table-btn">▲ Hide Table</button>
+						</th>
+					</tr>
+						<tr>
+							<th>Country</th>
+							<th>Start Date of Streak</th>
+							<th>End Date of Streak</th>           
+							<th>Number of Fixtures in Streak</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for row in df_data %}
+						
+						<tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
+							<td>{{ row.streak_country }}</td>
+							<td>{{row.interval_start_date}}</td>
+							<td>{{ row.interval_end_date }}</td>                    
+							<td>{{ row.day_interval }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="card">
+			<div class="map-container"></div>
+			
+			<div id="controls">
+				<button id="filter-btn">Filter</button>
+				<button id="toggle-lines-btn" style="display:none">Show Arrows</button>
+			</div>
+		</div>
 
-    <div id="data-table-container">
-        <table id="data-table">
-            <thead>
-			<tr>
-				<th colspan="5">
-					<button id="toggle-table-btn">▲ Hide Table</button>
-				</th>
-			</tr>
-                <tr>
-					<th>Country</th>
-                    <th>Start Date of Streak</th>
-                    <th>End Date of Streak</th>           
-                    <th>Number of Fixtures in Streak</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in df_data %}
-				
-                <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
-                    <td>{{ row.streak_country }}</td>
-					<td>{{row.interval_start_date}}</td>
-                    <td>{{ row.interval_end_date }}</td>                    
-                    <td>{{ row.day_interval }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="map-container"></div>
-	
-	<div id="controls">
-        <button id="filter-btn">Filter</button>
-        <button id="toggle-lines-btn" style="display:none">Show Arrows</button>
-    </div>
-
-    <div id="filtered-table-section">
-        <h3>Filtered Fixtures</h3>
-        <table id="filtered-data-table">
-            <thead>
-                <tr>
-                    <th>Date of Fixture</th>
-                    <th>Home Team</th>
-                    <th>Away Team</th>
-                    <th>Fixture Stadium</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+		<div class="card" id="filtered-table-section">
+			<h3>Filtered Fixtures</h3>
+			<table id="filtered-data-table">
+				<thead>
+					<tr>
+						<th>Date of Fixture</th>
+						<th>Home Team</th>
+						<th>Away Team</th>
+						<th>Fixture Stadium</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
     {% endif %}
 
     <script>
