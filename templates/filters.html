@@ -22,31 +22,123 @@
     th { background:#fafafa; position: sticky; top:0; }
     .row { display:grid; grid-template-columns: repeat(6, 1fr); gap: var(--gap); }
     @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
+	#tbl tbody tr { cursor: pointer; }
+	#welcome-screen.hidden { opacity: 0; pointer-events: none; }
   </style>
 </head>
 <body>
-  <header>
-    <h2 style="margin:0">Fixture Explorer</h2>
-    <a class="btn" href="/streak">Go to streak page</a>
-  </header>
+	<header>
+	  <h2 style="margin:0">Fixture Explorer</h2>
+	  <div style="display:flex; gap:8px;">
+		<a class="btn" href="/streak">Go to streak page</a>
+		<button id="info-btn" class="btn btn-primary" title="About this app">i</button>
+	  </div>
+	</header>
+	
+	<!-- Welcome / info overlay -->
+	<div id="welcome-screen" style="
+	  position: fixed;
+	  z-index: 9999;
+	  top: 0; left: 0;
+	  width: 100%; height: 100%;
+	  background: white;
+	  display: none;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: flex-start;
+	  overflow-y: auto;
+	  padding: 40px;
+	  transition: opacity 0.5s ease;">
+	  <h1>Welcome to the Fixture Explorer</h1>
+	  <p>This tool lets you browse and map football fixtures from the 25/26 season across leagues and countries.</p>
+	  <p>Use the filters on the left to narrow results by country, league, or team, then click <strong>Apply filters</strong> to see fixtures plotted on the map.</p>
+	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
+	  <p>Markers are color-coded by fixture date; see the legend in the bottom-right corner.</p>
+	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
+	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;">BEGIN</button>
+	  <h3> Current leagues included: </h3>
+	  <p>
+	    <br> Premier League - England</br>
+		<br> Championship - England</br>
+		<br> League One - England</br>
+		<br> League Two - England</br>
+		<br> National League - England</br>
+		<br> National League North - England</br>
+		<br> National League South - England</br>
+		<br> Scottish Premiership - Scotland</br>
+		<br> Scottish Championship - Scotland</br>
+		<br> Bundesliga - Germany</br>
+		<br> Bundesliga 2 - Germany</br>
+		<br> Bundesliga 3 - Germany</br>
+		<br> La Liga - Spain<br/>
+		<br> La Liga 2 - Spain<br/>
+		<br> Primera RFEF - 1 - Spain<br/>
+		<br> Primera RFEF - 2 - Spain<br/>
+		<br> Ligue 1 - France<br/>
+		<br> Ligue 2 - France<br/>
+		<br> National (France) - France<br/>
+		<br> Liga Portugal - Portugal<br/>
+		<br> Liga Portugal 2 - Portugal<br/>
+		<br> Serie A - Italy<br/>
+		<br> Serie B - Italy<br/>
+		<br> Serie C - A - Italy<br/>
+		<br> Serie C - B - Italy<br/>
+		<br> Serie C - C - Italy<br/>
+		<br> Chance Liga - Czech Republic<br/>
+		<br> Super League (Greece) - Greece<br/>
+		<br> Liga 1 - Romania<br/>
+		<br> Liga 2 - Romania<br/>
+		<br> Super Liga - Serbia<br/>
+		<br> Parva Liga - Bulgaria<br/>
+		<br> Vtora Liga - Bulgaria<br/>
+		<br> ChNl - Czech Republic<br/>
+		<br> Eerste Divisie - Netherlands<br/>
+		<br> Eredivise - Netherlands<br/>
+		<br> Jupiler Pro League - Belgium<br/>
+		<br> Super League (Switzerland) - Switzerland<br/>
+		<br> Challenger League - Switzerland<br/>
+		<br> Super Lig - Turkey<br/>
+		<br> 2. Lig Red Group - Turkey<br/>
+		<br> BGL Ligue - Luxembourg<br/>
+		<br> Bundesliga Austria - Austria<br/>
+		<br> Ekstraklasa - Poland<br/>
+		<br> Division 1 (Poland) - Poland<br/>
+		<br> Division 2 (Poland) - Poland<br/>
+		<br> Premier Division (Ireland) - Ireland<br/>
+		<br> Division 1 (Ireland) - Ireland<br/>
+		<br> Superliga - Denmark<br/>
+		<br> 1st Division (Denmark) - Denmark<br/>
+		<br> NB I. - Hungary<br/>
+		<br> NB II. - Hungary<br/>
+		<br> HNL - Croatia<br/>
+		<br> Prva NL - Croatia<br/>
+		<br> Eliteserien - Norway<br/>
+		<br> OBOS-ligaen - Norway<br/>
+		<br> Allsvenskan - Sweden<br/>
+		<br> Superettan - Sweden<br/>
+	  </p>
+	  <p>Disclaimer: Whilst every care is taken to ensure accuracy, the information provided in this website may not be complete or fully accurate. Please double-check before relying on it.</p>
+	  <p>Any issues please contact: Sodu6xuS@proton.me</p>
+	  <br></br>
+	</div>
 
   <div class="card">
     <div class="row">
       <div>
         <label>Country</label>
-        <select id="country"><option value="">(any)</option></select>
+        <select id="country" multiple><option value="">(any)</option></select>
       </div>
       <div>
         <label>League</label>
-        <select id="league"><option value="">(any)</option></select>
+        <select id="league" multiple><option value="">(any)</option></select>
       </div>
       <div>
         <label>Home Team</label>
-        <select id="home"><option value="">(any)</option></select>
+        <select id="home" multiple><option value="">(any)</option></select>
       </div>
       <div>
         <label>Away Team</label>
-        <select id="away"><option value="">(any)</option></select>
+        <select id="away" multiple><option value="">(any)</option></select>
       </div>
       <div>
         <label>Date from</label>
@@ -81,38 +173,42 @@
   <script>
     const preload = {{ preload | tojson }};
     const ids = ["country","league","home","away"];
-    function fill(id, arr) {
-      const el = document.getElementById(id);
-      const prev = el.value;
-      el.innerHTML = '<option value="">(any)</option>' + arr.map(v=>`<option>${v}</option>`).join('');
-      if (prev) el.value = prev;
-    }
-    for (const k in preload) fill(k, preload[k]);
+// turn a <select multiple> into an array of selected values; empty array means “any”
+function selVals(id){
+  const el = document.getElementById(id);
+  return Array.from(el.selectedOptions).map(o=>o.value).filter(v=>v!=="");
+}
 
-    let map = L.map('map');
-    let markersLayer = L.layerGroup().addTo(map);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap' }).addTo(map);
-    map.setView([20, 0], 2);
+// fill a <select multiple> but keep current selections if still present
+function fill(id, arr){
+  const el = document.getElementById(id);
+  const prev = new Set(selVals(id));
+  el.innerHTML = '<option value="">(any)</option>' + (arr||[]).map(v=>`<option>${v}</option>`).join('');
+  // reapply selections
+  Array.from(el.options).forEach(opt=>{
+    if (prev.has(opt.value)) opt.selected = true;
+  });
+}
 
-    function currentFilters(){
-      return {
-        country: document.getElementById("country").value || "",
-        league: document.getElementById("league").value || "",
-        home: document.getElementById("home").value || "",
-        away: document.getElementById("away").value || "",
-        date_from: document.getElementById("date_from").value || "",
-        date_to: document.getElementById("date_to").value || "",
-      };
-    }
+function currentFilters(){
+  return {
+    country: selVals("country"),  // arrays now
+    league:  selVals("league"),
+    home:    selVals("home"),
+    away:    selVals("away"),
+    date_from: document.getElementById("date_from").value || "",
+    date_to:   document.getElementById("date_to").value || "",
+  };
+}
 
-    async function refreshCascades(){
-      const f = encodeURIComponent(JSON.stringify(currentFilters()));
-      for (const id of ids){
-        const r = await fetch(`/api/options?column=${id}&filters=${f}`);
-        const data = await r.json();
-        fill(id, data.values || []);
-      }
-    }
+async function refreshCascades(){
+  const f = encodeURIComponent(JSON.stringify(currentFilters()));
+  for (const id of ["country","league","home","away"]){
+    const r = await fetch(`/api/options?column=${id}&filters=${f}`);
+    const data = await r.json();
+    fill(id, data.values || []);
+  }
+}
 
   // Reusable palette (same style as streaks)
   const COLORS = ["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#911eb4","#46f0f0",
@@ -145,6 +241,8 @@
     const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort();
     const dateColors = {};
     dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
+	
+	
 
     // ------------------ MAP --------------------
     markersLayer.clearLayers();
@@ -209,7 +307,32 @@
     } else {
       map.setView([20,0],2);
     }
-  }
+  
+	  // remove previous legend if it exists
+	if (window._legendCtrl) { map.removeControl(window._legendCtrl); window._legendCtrl = null; }
+	// add legend for date colors
+	if (uniqueDates.length){
+	  const legend = L.control({ position: "bottomright" });
+	  legend.onAdd = function () {
+		const div = L.DomUtil.create("div", "info legend");
+		div.style.background = "#fff";
+		div.style.padding = "8px 12px";
+		div.style.borderRadius = "8px";
+		div.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+		div.innerHTML = "<h4 style='margin:0 0 5px;font-size:14px;'>Fixture Dates</h4>";
+		uniqueDates.forEach(d=>{
+		  div.innerHTML += `
+			<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
+			  <span style="display:inline-block;width:14px;height:14px;background:${dateColors[d]};border:1px solid #00000055"></span>
+			  <span>${cleanDate(d)}</span>
+			</div>`;
+		});
+		return div;
+	  };
+	  legend.addTo(map);
+	  window._legendCtrl = legend;
+	}
+	}
 
     // events
     ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCascades));
@@ -230,6 +353,33 @@
     map.setView([20,0],2);
     document.querySelector("#tbl tbody").innerHTML = ""; // ensure table starts empty
   })();
+  
+  // Welcome screen logic
+	function showWelcomeAgain() {
+	  const welcome = document.getElementById("welcome-screen");
+	  welcome.style.display = "flex";
+	  welcome.classList.remove("hidden");
+	}
+
+	function hideWelcome() {
+	  const welcome = document.getElementById("welcome-screen");
+	  welcome.classList.add("hidden");
+	  setTimeout(() => { welcome.style.display = "none"; }, 500);
+	  sessionStorage.setItem("welcomeShownFilters", "true");
+	}
+
+	document.addEventListener("DOMContentLoaded", () => {
+	  const welcome = document.getElementById("welcome-screen");
+	  const already = sessionStorage.getItem("welcomeShownFilters");
+	  if (already === "true") {
+		welcome.style.display = "none";
+	  } else {
+		welcome.style.display = "flex";
+	  }
+
+	  document.getElementById("info-btn").addEventListener("click", showWelcomeAgain);
+	  document.getElementById("begin-btn").addEventListener("click", hideWelcome);
+	});
 
   </script>
 </body>

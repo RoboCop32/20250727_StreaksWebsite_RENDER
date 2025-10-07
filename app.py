@@ -649,8 +649,13 @@ def _build_where_and_params(filters: dict):
                 clauses.append(f"{q('date')} <= :date_to")
                 params["date_to"] = val
         else:
-            clauses.append(f"{q(key)} = :{key}")
-            params[key] = val
+            # if multi-select (list), use ANY(array) in Postgres
+            if isinstance(val, list):
+                clauses.append(f"{q(key)} = ANY(:{key})")
+                params[key] = val  # SQLAlchemy/psycopg2 will send as array
+            else:
+                clauses.append(f"{q(key)} = :{key}")
+                params[key] = val
     where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     return where_sql, params
 

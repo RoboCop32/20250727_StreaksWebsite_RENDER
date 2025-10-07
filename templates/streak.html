@@ -32,6 +32,8 @@
     box-shadow: 0 0 5px rgba(0,0,0,0.3); font-size: 14px; line-height: 18px; text-align: left;
   }
   .info.legend h4 { margin: 0 0 5px; font-size: 14px; }
+  #data-table tbody tr,
+#filtered-data-table tbody tr { cursor: pointer; }
 </style>
 		
 		
@@ -58,17 +60,17 @@
 	  <p>This app looks into a database of every professional fixture planned for the 25/26 football season per country and returns consecutive fixtures</p>
 	  <p></p>
 	  <h2>How to Use:</h2>
-	  <p>1. Firstly choose the amount of days between 2 fixtures that would define them as 'consecutive'. 
+	  <br>1. Firstly choose the amount of days between 2 fixtures that would define them as 'consecutive'. 
 	  For example, if you choose 1, only fixtures that occur 1 day after each other will be returned as 'consecutive'. 
 	  If you pick 7, fixtures that occur between 1-7 days after the previous fixture will be returned as 'consecutive'. And so on. This allows you to have breaks in between fixtures.
 	  After inputting your 'day gap' and clicking Generate Football Streaks, the table of football streaks returns. 
-	  Start and End date is when the streak starts and ends. Country and No. of fixtures are self explanatory</p>
-	  <p>2. Click on a row. All the fixtures returned will be shown on a map and as a table underneath the map, with the date, home and away teams, and stadium.
+	  Start and End date is when the streak starts and ends. Country and No. of fixtures are self explanatory</br>
+	  <br>2. Click on a row. All the fixtures returned will be shown on a map and as a table underneath the map, with the date, home and away teams, and stadium.
 	  Points are colour-coded based on their date - fixtures that share a date have the same colour.
-	  By hovering over a row, the corresponding fixture on the map will light up. Click on a row to zoom to that fixture's location (based on the stadium).</p>
-	  <p>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
-	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</p>
-	  <p>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</p>
+	  By hovering over a row, the corresponding fixture on the map will light up. Click on a row to zoom to that fixture's location (based on the stadium).</br>
+	  <br>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
+	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</br>
+	  <br>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</br>
 	  <button onclick="hideWelcome()">BEGIN</button>
 	  <h3> Current leagues included: </h3>
 	  <p>
@@ -148,7 +150,7 @@
 	<button onclick="showWelcomeAgain()" style="
 	  position: fixed;
 	  top: 10px;
-	  left: 10px;
+	  right: 10px;
 	  margin: 10px;
 	  padding: 10px 15px;
 	  font-size: 16px;
@@ -169,7 +171,7 @@
 					<thead>
 					<tr>
 						<th colspan="5">
-							<button id="toggle-table-btn">▲ Hide Table</button>
+							<button id="toggle-table-btn" class="btn">▲ Hide Table</button>
 						</th>
 					</tr>
 						<tr>
@@ -197,8 +199,8 @@
 			<div class="map-container"></div>
 			
 			<div id="controls">
-				<button id="filter-btn">Filter</button>
-				<button id="toggle-lines-btn" style="display:none">Show Arrows</button>
+				<button id="filter-btn" class="btn">Filter</button>
+				<button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
 			</div>
 		</div>
 
