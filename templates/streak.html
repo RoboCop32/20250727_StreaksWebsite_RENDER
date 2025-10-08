@@ -33,7 +33,9 @@
   }
   .info.legend h4 { margin: 0 0 5px; font-size: 14px; }
   #data-table tbody tr,
-#filtered-data-table tbody tr { cursor: pointer; }
+	#filtered-data-table tbody tr { cursor: pointer; }
+	.grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+	@media (max-width: 1100px) { .grid { grid-template-columns: 1fr } }
 </style>
 		
 		
@@ -140,17 +142,17 @@
 	
 
 	
-    <h2>Choose the amount of days between 2 fixtures that would define them as 'consecutive': (choose between 1–10)</h2>
+    <!--<h2>Choose the amount of days between 2 fixtures that would define them as 'consecutive': (choose between 1–10)</h2>
     <form method="POST" action="/streak">
         <input type="number" name="streak_gap" required min="1" max="10" placeholder="Enter Day Gap" style="width: 150px;">
         <button type="submit">Generate Football Streaks!</button>
 		
-    </form>
+    </form>-->
 	
 	<button onclick="showWelcomeAgain()" style="
 	  position: fixed;
 	  top: 10px;
-	  style='z-index: 9990'
+	  z-index: 9990;
 	  right: 10px;
 	  margin: 10px;
 	  padding: 10px 15px;
@@ -165,61 +167,58 @@
     {% if streak_shown %}
 
 
-	<div class="grid">
-		<div class="card">
-			<div id="data-table-container">
-				<table id="data-table">
-					<thead>
-					<tr>
-						<th colspan="5">
-							<button id="toggle-table-btn" class="btn">▲ Hide Table</button>
-						</th>
-					</tr>
-						<tr>
-							<th>Country</th>
-							<th>Start Date of Streak</th>
-							<th>End Date of Streak</th>           
-							<th>Number of Fixtures in Streak</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for row in df_data %}
-						
-						<tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
-							<td>{{ row.streak_country }}</td>
-							<td>{{row.interval_start_date}}</td>
-							<td>{{ row.interval_end_date }}</td>                    
-							<td>{{ row.day_interval }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<div class="card">
-			<div class="map-container"></div>
-			
-			<div id="controls">
-				<button id="filter-btn" class="btn">Filter</button>
-				<button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
-			</div>
-		</div>
+	<div class="card">
+  <div id="data-table-container">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th colspan="5"><button id="toggle-table-btn" class="btn">▲ Hide Table</button></th>
+        </tr>
+        <tr>
+          <th>Country</th>
+          <th>Start Date of Streak</th>
+          <th>End Date of Streak</th>
+          <th>Number of Fixtures in Streak</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in df_data %}
+        <tr onclick="toggleVisibility(document.querySelector('#data-table tbody'))" data-streak-id="{{ row.Streak_ID }}">
+          <td>{{ row.streak_country }}</td>
+          <td>{{ row.interval_start_date }}</td>
+          <td>{{ row.interval_end_date }}</td>
+          <td>{{ row.day_interval }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-		<div class="card" id="filtered-table-section">
-			<h3>Filtered Fixtures</h3>
-			<table id="filtered-data-table">
-				<thead>
-					<tr>
-						<th>Date of Fixture</th>
-						<th>Home Team</th>
-						<th>Away Team</th>
-						<th>Fixture Stadium</th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			</table>
-		</div>
-	</div>
+<div class="grid">
+  <div class="card">
+    <div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
+      <button id="filter-btn" class="btn">Filter</button>
+      <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
+    </div>
+    <div class="map-container"></div>
+  </div>
+
+  <div class="card" id="filtered-table-section">
+    <h3 style="margin-top:0;">Fixtures</h3>
+    <table id="filtered-data-table">
+      <thead>
+        <tr>
+          <th>Date of Fixture</th>
+          <th>Home Team</th>
+          <th>Away Team</th>
+          <th>Fixture Stadium</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
     {% endif %}
 
     <script>
@@ -307,10 +306,12 @@
 		let dateColors = {};
 		let currentColorIndex = 0;
 
-		const uniqueDates = [...new Set(data.map(row => row.date))].sort();
-		uniqueDates.forEach(date => {
-			dateColors[date] = colors[currentColorIndex % colors.length];
-			currentColorIndex++;
+		const uniqueDates = [...new Set(data.map(r => r.date))]  // keep unique
+		  .filter(Boolean)
+		  .sort((a,b) => Date.parse(a) - Date.parse(b));         // sort by real date
+		uniqueDates.forEach(d => {
+		  dateColors[d] = colors[currentColorIndex % colors.length];
+		  currentColorIndex++;
 		});
 		
 		// ✅ Add legend (date → color)

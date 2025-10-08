@@ -24,6 +24,7 @@
     @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
 	#tbl tbody tr { cursor: pointer; }
 	#welcome-screen.hidden { opacity: 0; pointer-events: none; }
+	.count-badge{ font-size:.75rem; color:#555; margin-left:6px }
   </style>
 </head>
 <body>
@@ -38,8 +39,9 @@
 	<button id="info-btn" class="btn btn-primary" title="About this app" style="
 	  position: fixed;
 	  top: 10px;
-	  style='z-index: 9990'
 	  right: 10px;
+	  z-index: 9990;
+	  
 	  margin: 10px;
 	  padding: 10px 15px;
 	  font-size: 16px;
@@ -141,19 +143,19 @@
   <div class="card">
     <div class="row">
       <div>
-        <label>Country</label>
+        <label>Country <span id="count-country" class="count-badge"></span></label>
         <select id="country" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
-        <label>League</label>
+        <label>League <span id="count-league" class="count-badge"></span></label>
         <select id="league" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
-        <label>Home Team</label>
+        <label>Home Team <span id="count-home" class="count-badge"></span></label>
         <select id="home" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
-        <label>Away Team</label>
+        <label>Away Team <span id="count-away" class="count-badge"></span></label>
         <select id="away" multiple size ="8"><option value="">(any)</option></select>
       </div>
       <div>
@@ -196,15 +198,16 @@ function selVals(id){
 }
 
 // fill a <select multiple> but keep current selections if still present
-function fill(id, arr){
-  const el = document.getElementById(id);
-  const prev = new Set(selVals(id));
-  el.innerHTML = '<option value="">(any)</option>' + (arr||[]).map(v=>`<option>${v}</option>`).join('');
-  // reapply selections
-  Array.from(el.options).forEach(opt=>{
-    if (prev.has(opt.value)) opt.selected = true;
-  });
-}
+	function fill(id, arr){
+	  const el = document.getElementById(id);
+	  const prev = new Set(selVals(id));
+	  el.innerHTML = '<option value="">(any)</option>' + (arr||[]).map(v=>`<option>${v}</option>`).join('')
+	  
+	  Array.from(el.options).forEach(opt=>{
+		if (prev.has(opt.value)) opt.selected = true;
+	  });
+	  refreshCountBadges();
+	}
 
 function currentFilters(){
   return {
@@ -224,6 +227,7 @@ async function refreshCascades(){
     const data = await r.json();
     fill(id, data.values || []);
   }
+  refreshCountBadges();
 }
 
   // Reusable palette (same style as streaks)
@@ -242,6 +246,15 @@ async function refreshCascades(){
     const m = s.match(/\d{4}-\d{2}-\d{2}/);
     return m ? m[0] : s;
   }
+  
+	function selCountText(arr){ return (arr && arr.length) ? `${arr.length} selected` : ""; }
+	function refreshCountBadges(){
+	  document.getElementById("count-country").textContent = selCountText(selVals("country"));
+	  document.getElementById("count-league").textContent  = selCountText(selVals("league"));
+	  document.getElementById("count-home").textContent    = selCountText(selVals("home"));
+	  document.getElementById("count-away").textContent    = selCountText(selVals("away"));
+	}
+	ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCountBadges));
 
   async function search(){
     const f = encodeURIComponent(JSON.stringify(currentFilters()));
@@ -327,7 +340,7 @@ async function refreshCascades(){
 	  // remove previous legend if it exists
 	if (window._legendCtrl) { map.removeControl(window._legendCtrl); window._legendCtrl = null; }
 	// add legend for date colors
-	if (uniqueDates.length){
+	if (dateSet.length){
 	  const legend = L.control({ position: "bottomright" });
 	  legend.onAdd = function () {
 		const div = L.DomUtil.create("div", "info legend");
@@ -336,7 +349,7 @@ async function refreshCascades(){
 		div.style.borderRadius = "8px";
 		div.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
 		div.innerHTML = "<h4 style='margin:0 0 5px;font-size:14px;'>Fixture Dates</h4>";
-		uniqueDates.forEach(d=>{
+		dateSet.forEach(d=>{
 		  div.innerHTML += `
 			<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
 			  <span style="display:inline-block;width:14px;height:14px;background:${dateColors[d]};border:1px solid #00000055"></span>
@@ -351,15 +364,21 @@ async function refreshCascades(){
 	}
 
     // events
-    ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCascades));
-    document.getElementById("searchBtn").addEventListener("click", search);
-    document.getElementById("clearBtn").addEventListener("click", async ()=>{
-      ids.forEach(id => document.getElementById(id).value = "");
-      document.getElementById("date_from").value = "";
-      document.getElementById("date_to").value = "";
-      await refreshCascades();
-      await search();
-    });
+    //ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCascades));
+	ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCountBadges));
+    document.getElementById("searchBtn").addEventListener("click", async ()=>{
+	  await refreshCascades();   // update option lists based on current selections
+	  refreshCountBadges();      // keep “N selected” fresh
+	  await search();            // then run the query and draw map/table
+	});
+	document.getElementById("clearBtn").addEventListener("click", async ()=>{
+	  ids.forEach(id => document.getElementById(id).value = "");
+	  document.getElementById("date_from").value = "";
+	  document.getElementById("date_to").value = "";
+	  await refreshCascades();   // repopulate all options to full sets
+	  refreshCountBadges();      // reset the “N selected” badges
+	  await search();            // clear table/map results
+	});
 
       (async function init(){
     await refreshCascades();
@@ -396,20 +415,19 @@ async function refreshCascades(){
 	  document.getElementById("info-btn").addEventListener("click", showWelcomeAgain);
 	  document.getElementById("begin-btn").addEventListener("click", hideWelcome);
 	});
+	
 	function enableToggleMulti(id){
-  const el = document.getElementById(id);
-  // Toggle the clicked option instead of replacing selection
-  el.addEventListener('mousedown', (e) => {
-    const opt = e.target;
-    if (opt && opt.tagName === 'OPTION') {
-      e.preventDefault();              // stop default replace behavior
-      opt.selected = !opt.selected;    // toggle selection
-      // fire change so cascades/search can react if needed
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  });
-}
-["country","league","home","away"].forEach(enableToggleMulti);
+	  const el = document.getElementById(id);
+	  el.addEventListener('mousedown', (e) => {
+		const opt = e.target;
+		if (opt && opt.tagName === 'OPTION') {
+		  e.preventDefault();
+		  opt.selected = !opt.selected;
+		  el.dispatchEvent(new Event('change', { bubbles: true })); // only updates counts
+		}
+	  });
+	}
+	["country","league","home","away"].forEach(enableToggleMulti);
   </script>
 </body>
 </html>
