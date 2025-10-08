@@ -191,11 +191,20 @@
   <script>
     const preload = {{ preload | tojson }};
     const ids = ["country","league","home","away"];
-// turn a <select multiple> into an array of selected values; empty array means “any”
-function selVals(id){
-  const el = document.getElementById(id);
-  return Array.from(el.selectedOptions).map(o=>o.value).filter(v=>v!=="");
-}
+	
+	// ✅ Create and initialize the Leaflet map + marker layer
+	let map = L.map('map');
+	let markersLayer = L.layerGroup().addTo(map);
+	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	  attribution: '&copy; OpenStreetMap'
+	}).addTo(map);
+	map.setView([20, 0], 2);
+	
+	// turn a <select multiple> into an array of selected values; empty array means “any”
+	function selVals(id){
+	  const el = document.getElementById(id);
+	  return Array.from(el.selectedOptions).map(o=>o.value).filter(v=>v!=="");
+	}
 
 // fill a <select multiple> but keep current selections if still present
 	function fill(id, arr){
@@ -207,7 +216,10 @@ function selVals(id){
 		if (prev.has(opt.value)) opt.selected = true;
 	  });
 	  refreshCountBadges();
+	  
 	}
+
+
 
 function currentFilters(){
   return {
