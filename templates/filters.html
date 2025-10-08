@@ -218,17 +218,32 @@
 	  refreshCountBadges();
 	  
 	}
+  
 
+  // when any box changes, update the available options in the others
+  ids.forEach(id => {
+    document.getElementById(id).addEventListener("change", async () => {
+      await refreshCascades();   // updates options for all 4 lists
+      refreshCountBadges();      // "N selected" text
+    });
+  });
+
+  // Apply filters still performs the search
+  document.getElementById("searchBtn").addEventListener("click", async ()=>{
+    await refreshCascades();   // one more time to be safe
+    refreshCountBadges();
+    await search();
+  });
 
 
 function currentFilters(){
   return {
-    country: selVals("country"),  // arrays now
+    country: selVals("country"),
     league:  selVals("league"),
     home:    selVals("home"),
     away:    selVals("away"),
     date_from: document.getElementById("date_from").value || "",
-    date_to:   document.getElementById("date_to").value || "",
+    date_to:   document.getElementById("date_to").value || ""
   };
 }
 
