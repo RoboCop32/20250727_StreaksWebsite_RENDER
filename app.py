@@ -701,10 +701,13 @@ def api_options():
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
         f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
-        f"ORDER BY 1"
+        f"ORDER BY {q('date')} ASC""
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
+        
+        # ✅ Sort by date ascending (if not already)
+        rows = sorted(rows, key=lambda r: r["date"])
 
     return jsonify({"values": [r["v"] for r in rows if r["v"] is not None]})
 
