@@ -321,7 +321,7 @@ async function refreshCascades(){
 
     // build unique dates (sorted) to color markers consistently
     const rows = (data.rows || []);
-    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort();
+    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort((a, b) => new Date(a) - new Date(b));
     const dateColors = {};
     dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
 	
