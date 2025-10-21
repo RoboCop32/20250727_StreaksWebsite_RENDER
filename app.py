@@ -701,7 +701,7 @@ def api_options():
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
         f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
-        f"ORDER BY {q('date')} ASC""
+        f"ORDER BY {q('date')} ASC"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
