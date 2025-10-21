@@ -677,8 +677,9 @@ def api_options():
     EXCEPT the column itself. This keeps multi-selects additive.
     """
     import json
-
     column = request.args.get("column", "")
+
+    # ✅ league is included here
     if column not in ("country", "league", "home", "away"):
         return jsonify({"values": []})
 
@@ -687,16 +688,13 @@ def api_options():
     except Exception:
         filters = {}
 
-    # ✅ Do not filter a column by itself; keep it fully selectable
+    # ✅ Do not filter a column by itself; keeps other options visible
     filters.pop(column, None)
 
-    # Build WHERE using your existing helper
     where_sql, params = _build_where_and_params(filters)
-
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
-        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
-        f"ORDER BY 1"
+        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL ORDER BY 1"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
