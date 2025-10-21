@@ -701,13 +701,12 @@ def api_options():
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
         f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
-        f"ORDER BY {q('date')} ASC"
+        f"ORDER BY 1"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
         
-        # ✅ Sort by date ascending (if not already)
-        rows = sorted(rows, key=lambda r: r["date"])
+        
 
     return jsonify({"values": [r["v"] for r in rows if r["v"] is not None]})
 
@@ -726,11 +725,14 @@ def api_search():
     cols_sql = ", ".join(q(c) for c in RESULT_COLUMNS)
     sql = text(
         f"SELECT {cols_sql} FROM {q(DATA_TABLE)}{where_sql} "
-        f"ORDER BY {q('date')} DESC LIMIT :lim"
+        f"ORDER BY {q('date')} ASC LIMIT :lim"
     )
     params["lim"] = limit
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
+        
+        # ✅ Sort by date ascending (if not already)
+        rows = sorted(rows, key=lambda r: r["date"])
 
     # craft markers from Lat/Lon if present
     markers, table_rows = [], []
