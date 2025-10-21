@@ -25,6 +25,33 @@
 	#tbl tbody tr { cursor: pointer; }
 	#welcome-screen.hidden { opacity: 0; pointer-events: none; }
 	.count-badge{ font-size:.75rem; color:#555; margin-left:6px }
+	#tbl {
+	  border-collapse: collapse;
+	  width: 100%;
+	}
+	
+	#tbl thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;          /* solid background so rows don't show through */
+  z-index: 3;                /* keep it above the scrolling rows */
+  box-shadow: 0 1px 0 #eee;  /* subtle separation line */
+	}
+
+	/* Make the scrolling card a stacking context so z-index works reliably */
+	.card {
+	  border: 1px solid #e7e7e7;
+	  border-radius: 12px;
+	  padding: 12px;
+	  background: #fff;
+	  position: relative; /* add this */
+	}
+
+	/* (optional) ensure the table container is the scroller */
+	.table-card {
+	  overflow: auto;
+	  max-height: 560px;
+	}
   </style>
 </head>
 <body>

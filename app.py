@@ -21,8 +21,7 @@
 When users submit input (e.g., through a form or URL), you must make sure it doesn’t contain malicious content — especially when used in SQL queries.
 '''
 
-from flask import Flask, render_template, request, Markup, jsonify, session, render_template_string
-from flask import g
+from flask import Flask, render_template, request, Markup, jsonify, session, render_template_string, g
 
 import os
 import geopandas as gpd
@@ -30,6 +29,7 @@ import folium
 import random
 import pandas as pd
 from sqlalchemy import create_engine, text
+from sqlalchemy.sql import text
 import sqlalchemy
 import psycopg2
 from shapely.wkt import loads  # Required for geometry conversion
@@ -597,7 +597,10 @@ def zoom(lat,lon):
     
     return Markup(m)
 
-
+def q(x):  # helper that quotes identifiers the same way you already do
+    return f'"{x}"'
+    
+    
 @app.route("/get_filtered_route")
 def get_filtered_route():
 
@@ -669,22 +672,31 @@ def _build_where_and_params(filters: dict):
 
 @app.get("/api/options")
 def api_options():
-    # ?column=league&filters=<json>
-    column = request.args.get("column")
-    if column not in FILTER_COLUMNS:
-        return jsonify({"values": []}), 400
-
+    """
+    Returns the distinct values for a given column using all current filters
+    EXCEPT the column itself. This keeps multi-selects additive.
+    """
     import json
+
+    column = request.args.get("column", "")
+    if column not in ("country", "league", "home", "away"):
+        return jsonify({"values": []})
+
     try:
         filters = json.loads(request.args.get("filters") or "{}")
     except Exception:
         filters = {}
 
+    # ✅ Do not filter a column by itself; keep it fully selectable
+    filters.pop(column, None)
+
+    # Build WHERE using your existing helper
     where_sql, params = _build_where_and_params(filters)
-    # ensure NULLs excluded and make combos cascade
+
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
-        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL ORDER BY 1"
+        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
+        f"ORDER BY 1"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
