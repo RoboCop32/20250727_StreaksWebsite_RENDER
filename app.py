@@ -671,33 +671,41 @@ def _build_where_and_params(filters: dict):
 
 
 @app.get("/api/options")
-def api_options():
+def api_options(): 
     """
     Returns the distinct values for a given column using all current filters
-    EXCEPT the column itself. This keeps multi-selects additive.
+    EXCEPT the column itself AND any columns to its right in the filter order.
+    This prevents 'backwards' influence between pickers.
     """
     import json
-    column = request.args.get("column", "")
+    column = request.args.get("column")
 
-    # ✅ league is included here
-    if column not in ("country", "league", "home", "away"):
-        return jsonify({"values": []})
+    # The left-to-right dependency order used on the page:
+    ORDER = ["country", "league", "home", "away"]
+
+    if column not in ORDER:
+        return jsonify({"values": []}), 400
 
     try:
         filters = json.loads(request.args.get("filters") or "{}")
     except Exception:
         filters = {}
 
-    # ✅ Do not filter a column by itself; keeps other options visible
-    filters.pop(column, None)
+    # Ignore self and anything to the right (later pickers)
+    idx = ORDER.index(column)
+    for k in ORDER[idx:]:
+        filters.pop(k, None)
 
+    # Build query with remaining filters (dates still apply)
     where_sql, params = _build_where_and_params(filters)
     sql = text(
         f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
-        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL ORDER BY 1"
+        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
+        f"ORDER BY 1"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
+
     return jsonify({"values": [r["v"] for r in rows if r["v"] is not None]})
 
 
