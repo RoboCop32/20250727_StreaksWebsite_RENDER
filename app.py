@@ -461,7 +461,6 @@ def api_stadiums_search():
     except Exception:
         filters = {}
 
-    # keep only the two filters this page cares about
     filters = {
         "country": filters.get("country") or [],
         "league":  filters.get("league")  or [],
@@ -470,26 +469,25 @@ def api_stadiums_search():
     where_sql, params = _build_where_and_params(filters)
 
     sql = text(f"""
-        SELECT DISTINCT ON ("Team Name","Stadium Name","League")
-               "Team Name"        AS team_name,
-               "Country"          AS country,
-               "League"           AS league,
-               "Stadium Name"     AS stadium_name,
-               "Longitude"        AS lon,
-               "Latitude"         AS lat
+        SELECT DISTINCT ON ("team name","stadium name","league")
+               "team name"    AS team_name,
+               "country"      AS country,
+               "league"       AS league,
+               "stadium name" AS stadium_name,
+               "longitude"    AS lon,
+               "latitude"     AS lat
         FROM "{DATA_TABLE}"
         {where_sql}
-        ORDER BY "Team Name","Stadium Name","League"
+        ORDER BY "team name","stadium name","league"
     """)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
 
-    # shape for table + map
     out_rows, markers = [], []
     for i, r in enumerate(rows):
         out_rows.append({
-            "id": i,  # link row <-> marker
+            "id": i,
             "Team Name":    r["team_name"],
             "Country":      r["country"],
             "League":       r["league"],
@@ -519,8 +517,8 @@ def stadiums_home():
             return [r["v"] for r in rows if r["v"] is not None]
 
         preload = {
-            "country": distinct("Country"),
-            "league":  distinct("League"),
+            "country": distinct("country"),
+            "league":  distinct("league"),
         }
     return render_template("stadiums.html", preload=preload)
 
