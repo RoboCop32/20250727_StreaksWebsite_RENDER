@@ -452,81 +452,76 @@ def streak():
 
     return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
+# --- unique stadiums search using current filters (country/league only) ---
 @app.get("/api/stadiums/search")
 def api_stadiums_search():
-    # ?filters=<json>&limit=2000
     import json
     try:
         filters = json.loads(request.args.get("filters") or "{}")
     except Exception:
         filters = {}
 
-    limit = int(request.args.get("limit") or 2000)
+    # keep only the two filters this page cares about
+    filters = {
+        "country": filters.get("country") or [],
+        "league":  filters.get("league")  or [],
+    }
 
     where_sql, params = _build_where_and_params(filters)
 
-    # Pull stadium-centric fields and make them unique per stadium/team
-    # (You can change DISTINCT ON ordering if you want a different tie-break)
-    sql = text(
-        f"""
-        SELECT DISTINCT ON ({q('Team Name')}, {q('Stadium Name')})
-               {q('Team Name')}        AS team_name,
-               {q('Country')}          AS country,
-               {q('Stadium Name')}     AS stadium_name,
-               {q('Stadium Location')} AS stadium_location,
-               {q('Longitude')}        AS lon,
-               {q('Latitude')}         AS lat
-        FROM {q(DATA_TABLE)}
+    sql = text(f"""
+        SELECT DISTINCT ON ("Team Name","Stadium Name","League")
+               "Team Name"        AS team_name,
+               "Country"          AS country,
+               "League"           AS league,
+               "Stadium Name"     AS stadium_name,
+               "Longitude"        AS lon,
+               "Latitude"         AS lat
+        FROM "{DATA_TABLE}"
         {where_sql}
-        ORDER BY {q('Team Name')}, {q('Stadium Name')}
-        LIMIT :limit
-        """
-    )
-    params["limit"] = limit
+        ORDER BY "Team Name","Stadium Name","League"
+    """)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
 
-    # table rows
-    table_rows = []
-    markers = []
-    for r in rows:
-        row = {
-            "Team Name":        r["team_name"],
-            "Country":          r["country"],
-            "Stadium Name":     r["stadium_name"],
-            "Stadium Location": r["stadium_location"],
-            "Longitude":        r["lon"],
-            "Latitude":         r["lat"],
-        }
-        table_rows.append(row)
-
+    # shape for table + map
+    out_rows, markers = [], []
+    for i, r in enumerate(rows):
+        out_rows.append({
+            "id": i,  # link row <-> marker
+            "Team Name":    r["team_name"],
+            "Country":      r["country"],
+            "League":       r["league"],
+            "Stadium Name": r["stadium_name"],
+            "Longitude":    r["lon"],
+            "Latitude":     r["lat"],
+        })
         if r["lat"] is not None and r["lon"] is not None:
             markers.append({
+                "id": i,
                 "lat": float(r["lat"]),
                 "lng": float(r["lon"]),
-                "popup": f"{r['stadium_name'] or ''} — {r['team_name'] or ''} ({r['country'] or ''})"
+                "popup": f"{r['stadium_name'] or ''} — {r['team_name'] or ''}<br>{r['league'] or ''} · {r['country'] or ''}"
             })
 
-    return jsonify({"rows": table_rows, "markers": markers})
+    return jsonify({"rows": out_rows, "markers": markers})
 
+# --- homepage -> Stadiums ---
 @app.route("/", methods=["GET"])
 def stadiums_home():
-    # preload the same filters so selects aren’t empty on first load
     with engine1.connect() as conn:
         def distinct(col):
-            sql = text(f"SELECT DISTINCT {q(col)} AS v FROM {q(DATA_TABLE)} "
-                       f"WHERE {q(col)} IS NOT NULL ORDER BY 1")
-            rows = conn.execute(sql).mappings().all()
+            rows = conn.execute(text(
+                f'SELECT DISTINCT "{col}" AS v FROM "{DATA_TABLE}" '
+                f'WHERE "{col}" IS NOT NULL ORDER BY 1'
+            )).mappings().all()
             return [r["v"] for r in rows if r["v"] is not None]
 
         preload = {
-            "country": distinct("country"),
-            "league": distinct("league"),
-            "home": distinct("home"),
-            "away": distinct("away"),
+            "country": distinct("Country"),
+            "league":  distinct("League"),
         }
-
     return render_template("stadiums.html", preload=preload)
 
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
