@@ -452,6 +452,83 @@ def streak():
 
     return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
+@app.get("/api/stadiums/search")
+def api_stadiums_search():
+    # ?filters=<json>&limit=2000
+    import json
+    try:
+        filters = json.loads(request.args.get("filters") or "{}")
+    except Exception:
+        filters = {}
+
+    limit = int(request.args.get("limit") or 2000)
+
+    where_sql, params = _build_where_and_params(filters)
+
+    # Pull stadium-centric fields and make them unique per stadium/team
+    # (You can change DISTINCT ON ordering if you want a different tie-break)
+    sql = text(
+        f"""
+        SELECT DISTINCT ON ({q('Team Name')}, {q('Stadium Name')})
+               {q('Team Name')}        AS team_name,
+               {q('Country')}          AS country,
+               {q('Stadium Name')}     AS stadium_name,
+               {q('Stadium Location')} AS stadium_location,
+               {q('Longitude')}        AS lon,
+               {q('Latitude')}         AS lat
+        FROM {q(DATA_TABLE)}
+        {where_sql}
+        ORDER BY {q('Team Name')}, {q('Stadium Name')}
+        LIMIT :limit
+        """
+    )
+    params["limit"] = limit
+
+    with engine1.connect() as conn:
+        rows = conn.execute(sql, params).mappings().all()
+
+    # table rows
+    table_rows = []
+    markers = []
+    for r in rows:
+        row = {
+            "Team Name":        r["team_name"],
+            "Country":          r["country"],
+            "Stadium Name":     r["stadium_name"],
+            "Stadium Location": r["stadium_location"],
+            "Longitude":        r["lon"],
+            "Latitude":         r["lat"],
+        }
+        table_rows.append(row)
+
+        if r["lat"] is not None and r["lon"] is not None:
+            markers.append({
+                "lat": float(r["lat"]),
+                "lng": float(r["lon"]),
+                "popup": f"{r['stadium_name'] or ''} — {r['team_name'] or ''} ({r['country'] or ''})"
+            })
+
+    return jsonify({"rows": table_rows, "markers": markers})
+
+@app.route("/", methods=["GET"])
+def stadiums_home():
+    # preload the same filters so selects aren’t empty on first load
+    with engine1.connect() as conn:
+        def distinct(col):
+            sql = text(f"SELECT DISTINCT {q(col)} AS v FROM {q(DATA_TABLE)} "
+                       f"WHERE {q(col)} IS NOT NULL ORDER BY 1")
+            rows = conn.execute(sql).mappings().all()
+            return [r["v"] for r in rows if r["v"] is not None]
+
+        preload = {
+            "country": distinct("country"),
+            "league": distinct("league"),
+            "home": distinct("home"),
+            "away": distinct("away"),
+        }
+
+    return render_template("stadiums.html", preload=preload)
+
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
 def get_streak(streak_id):
     """Retrieve and display the selected streak's map."""
@@ -618,7 +695,7 @@ def get_filtered_route():
     
     return jsonify(result)
     
-@app.route("/", methods=["GET"])
+@app.route("/filters", methods=["GET"])
 def filter_home():
     # Preload distincts so dropdowns aren’t empty on first load
     with engine1.connect() as conn:

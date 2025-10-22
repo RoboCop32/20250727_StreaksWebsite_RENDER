@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Stadium Explorer</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root { --gap: 14px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
+    header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
+    .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
+    .btn:hover { background:#f0f0f0 }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff; position:relative; }
+    label { display:block; font-size:.85rem; color:#555; margin-bottom:4px; }
+    select, input[type="date"] { width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; }
+    #map { height: 520px; border-radius:12px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
+    thead th { background:#fff; position: sticky; top: 0; z-index: 3; box-shadow: 0 1px 0 #eee; }
+    .row { display:grid; grid-template-columns: repeat(6, 1fr); gap: var(--gap); }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
+    #tbl tbody tr { cursor: pointer; }
+    .count-badge{ font-size:.75rem; color:#555; margin-left:6px }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 style="margin:0">Stadium Explorer</h2>
+    <div style="display:flex; gap:8px;">
+      <a class="btn" href="/filters">Go to fixtures page</a>
+      <a class="btn" href="/streak">Go to streak page</a>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Left: filters & map -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Country <span class="count-badge" id="country-count"></span></label>
+          <select id="country" multiple size="8"></select>
+        </div>
+        <div>
+          <label>League <span class="count-badge" id="league-count"></span></label>
+          <select id="league" multiple size="8"></select>
+        </div>
+        <div>
+          <label>Home Team <span class="count-badge" id="home-count"></span></label>
+          <select id="home" multiple size="8"></select>
+        </div>
+        <div>
+          <label>Away Team <span class="count-badge" id="away-count"></span></label>
+          <select id="away" multiple size="8"></select>
+        </div>
+        <div>
+          <label>Date from</label>
+          <input type="date" id="date_from"/>
+        </div>
+        <div>
+          <label>Date to</label>
+          <input type="date" id="date_to"/>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button id="searchBtn" class="btn">Apply filters</button>
+        <button id="clearBtn" class="btn">Clear</button>
+      </div>
+
+      <div id="map" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Right: stadiums table -->
+    <div class="card table-card" style="overflow:auto; max-height: 720px;">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Team Name</th>
+            <th>Country</th>
+            <th>Stadium Name</th>
+            <th>Stadium Location</th>
+            <th>Longitude</th>
+            <th>Latitude</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // ==== preload options from server ====
+    const preload = {{ preload|tojson|safe }};
+
+    function optHtml(arr){ return ['<option value="">(any)</option>'].concat((arr||[]).map(v=>`<option>${v}</option>`)).join(''); }
+    function selVals(id){ return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value).filter(Boolean); }
+    function clean(s){ return (s ?? '').toString(); }
+
+    function fill(id, arr){
+      const el = document.getElementById(id);
+      const prev = new Set(selVals(id));
+      el.innerHTML = optHtml(arr);
+      Array.from(el.options).forEach(opt => { if (prev.has(opt.value)) opt.selected = true; });
+      refreshCountBadges();
+    }
+
+    ["country","league","home","away"].forEach(id => fill(id, preload[id]));
+
+    function currentFilters(){
+      return {
+        country: selVals("country"),
+        league:  selVals("league"),
+        home:    selVals("home"),
+        away:    selVals("away"),
+        date_from: document.getElementById("date_from").value || "",
+        date_to:   document.getElementById("date_to").value || ""
+      };
+    }
+
+    async function refreshCascades(){
+      const f = encodeURIComponent(JSON.stringify(currentFilters()));
+      for (const id of ["country","league","home","away"]){
+        const r = await fetch(`/api/options?column=${id}&filters=${f}`);
+        const data = await r.json();
+        fill(id, data.values || []);
+      }
+      refreshCountBadges();
+    }
+
+    // map
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+    let markerLayer = L.layerGroup().addTo(map);
+
+    function refreshCountBadges(){
+      const counts = {
+        country: document.querySelectorAll('#country option:checked').length,
+        league:  document.querySelectorAll('#league option:checked').length,
+        home:    document.querySelectorAll('#home option:checked').length,
+        away:    document.querySelectorAll('#away option:checked').length,
+      };
+      for (const k of Object.keys(counts)){
+        const el = document.getElementById(`${k}-count`);
+        if (el) el.textContent = counts[k] ? `(${counts[k]} selected)` : '';
+      }
+    }
+
+    async function search(){
+      const f = encodeURIComponent(JSON.stringify(currentFilters()));
+      const res = await fetch(`/api/stadiums/search?filters=${f}&limit=3000`);
+      const {rows, markers} = await res.json();
+
+      // table
+      const tbody = document.querySelector("#tbl tbody");
+      tbody.innerHTML = "";
+      rows.forEach(r=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${clean(r["Team Name"])}</td>
+          <td>${clean(r["Country"])}</td>
+          <td>${clean(r["Stadium Name"])}</td>
+          <td>${clean(r["Stadium Location"])}</td>
+          <td>${clean(r["Longitude"])}</td>
+          <td>${clean(r["Latitude"])}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // markers
+      markerLayer.clearLayers();
+      const bounds = [];
+      (markers || []).forEach(m=>{
+        const mk = L.marker([m.lat, m.lng]).bindPopup(m.popup);
+        mk.addTo(markerLayer);
+        bounds.push([m.lat, m.lng]);
+      });
+      if (bounds.length){ map.fitBounds(bounds, {padding:[20,20]}); } else { map.setView([20,0],2); }
+    }
+
+    // events
+    document.getElementById("clearBtn").addEventListener("click", async ()=>{
+      ["country","league","home","away"].forEach(id => document.getElementById(id).selectedIndex = -1);
+      document.getElementById("date_from").value = "";
+      document.getElementById("date_to").value = "";
+      await refreshCascades();
+      await search();
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", async ()=>{
+      await refreshCascades();
+      await search();
+    });
+
+    // single-click multi-select like on fixtures page
+    function enableToggleMulti(id){
+      const el = document.getElementById(id);
+      el.addEventListener('mousedown', (e) => {
+        const opt = e.target;
+        if (opt && opt.tagName === 'OPTION') {
+          e.preventDefault();
+          opt.selected = !opt.selected;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    }
+    ["country","league","home","away"].forEach(enableToggleMulti);
+
+    // initial load
+    refreshCountBadges();
+    search();
+  </script>
+</body>
+</html>
