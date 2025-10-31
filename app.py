@@ -490,8 +490,8 @@ def api_stadiums_search():
                {q('country')}      AS country,
                {q('league')}       AS league,
                {q('Stadium Name')} AS stadium_name,
-               {q('longitude')}    AS lon,
-               {q('latitude')}     AS lat
+               {q('Longitude')}    AS lon,
+               {q('Latitude')}     AS lat
         FROM {q(DATA_TABLE)}
         {where_sql}
         ORDER BY {q('Team Name')}, {q('Stadium Name')}, {q('league')}
