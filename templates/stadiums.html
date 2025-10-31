@@ -7,25 +7,44 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    :root { --gap: 14px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
-    header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
-    .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
-    .btn:hover { background:#f0f0f0 }
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
-    .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff; position:relative; }
-    label { display:block; font-size:.85rem; color:#555; margin-bottom:4px; }
-    select { width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; }
-    #map { height: 520px; border-radius:12px; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
-    thead th { background:#fff; position: sticky; top: 0; z-index: 3; box-shadow: 0 1px 0 #eee; }
-    .row { display:grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); }
-    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } }
-    #tbl tbody tr { cursor: pointer; }
-    #tbl tbody tr:hover { background: #f8f8f8; }
-    .count-badge{ font-size:.75rem; color:#555; margin-left:6px }
-  </style>
+  :root { --gap: 14px; }
+  background: #59A6FF; 
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
+  header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
+  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
+  .btn:hover { background:#f0f0f0 }
+
+  .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff; position:relative; }
+
+  /* Filters: 3 thin columns in a row */
+  .filters-row {
+    display:grid;
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    gap: var(--gap);
+    margin-bottom: var(--gap);
+  }
+  .filter { display:flex; flex-direction:column; gap:6px; }
+  label { font-weight:600; font-size: 14px; }
+  select[multiple] {
+    min-height: 180px;
+    border:1px solid #ddd; border-radius:10px; padding:8px;
+    font-size: 14px; background:#fff;
+  }
+  .count-badge { font-weight:400; color:#666; margin-left:6px; }
+
+  /* Map full-width under filters */
+  #mapCard { margin-top: 4px; }
+  #map { width: 100%; min-height: 420px; border-radius:10px; }
+
+  /* Results table under the map */
+  #tableCard { margin-top: var(--gap); }
+  table { width:100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 8px 10px; border-bottom:1px solid #eee; text-align:left; }
+  th { background:#fafafa; position:sticky; top:0; z-index:1; }
+
+  .actions { display:flex; gap:8px; align-items:center; }
+  .actions .btn { padding:6px 10px; }
+</style>
 </head>
 <body>
   <header>
@@ -35,51 +54,52 @@
     </div>
   </header>
 
-  <div class="grid">
-    <!-- Left: filters & map -->
-    <div class="card">
-      <div class="row">
-		  <div>
-			<label>Country <span class="count-badge" id="country-count"></span></label>
-			<select id="country" multiple size="10"></select>
-		  </div>
-		  <div>
-			<label>League <span class="count-badge" id="league-count"></span></label>
-			<select id="league" multiple size="10"></select>
-		  </div>
-		  <div>
-			<label>Club <span class="count-badge" id="club-count"></span></label>
-			<select id="club" multiple size="10"></select>
-		  </div>
-		</div>
-
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <button id="searchBtn" class="btn">Apply filters</button>
-        <button id="clearBtn" class="btn">Clear</button>
-      </div>
-
-      <div id="map" style="margin-top:12px;"></div>
+  <div class="card">
+  <div class="filters-row">
+    <div class="filter">
+      <label>Country <span class="count-badge" id="country-count"></span></label>
+      <select id="country" multiple></select>
     </div>
-
-    <!-- Right: stadiums table -->
-    <div class="card table-card" style="overflow:auto; max-height: 720px;">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th>Team Name</th>
-            <th>Stadium Name</th>
-            <th>Country</th>
-            <th>League</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="filter">
+      <label>League <span class="count-badge" id="league-count"></span></label>
+      <select id="league" multiple></select>
+    </div>
+    <div class="filter">
+      <label>Club <span class="count-badge" id="club-count"></span></label>
+      <select id="club" multiple></select>
     </div>
   </div>
 
-  <script>
-   const preload = {{ preload|tojson|safe }};
+  <div class="actions">
+    <button id="clearBtn" class="btn">Clear</button>
+    <span id="status" aria-live="polite"></span>
+  </div>
+</div>
 
+<div id="mapCard" class="card">
+  <div id="map"></div>
+</div>
+
+<div id="tableCard" class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th>League</th>
+        <th>Club</th>
+        <th>Stadium</th>
+        <th>Capacity</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+ <script>
+  // Preloaded distincts injected by Flask:
+  const preload = {{ preload|tojson|safe }};
+
+  // ---------- helpers ----------
   function optHtml(arr){ return ['<option value="">(any)</option>'].concat((arr||[]).map(v=>`<option>${v}</option>`)).join(''); }
   function selVals(id){ return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value).filter(Boolean); }
   function fill(id, arr){
@@ -89,39 +109,11 @@
     Array.from(el.options).forEach(opt => { if (prev.has(opt.value)) opt.selected = true; });
     refreshCountBadges();
   }
-  // include club (preload may be empty if you prefer)
-  ["country","league","club"].forEach(id => fill(id, preload[id]));
-
-  function currentFilters(){
-    return {
-      country: selVals("country"),
-      league:  selVals("league"),
-      club:    selVals("club"),   // <-- NEW
-    };
-  }
-
-  async function refreshCascades(){
-    const f = encodeURIComponent(JSON.stringify(currentFilters()));
-    for (const id of ["country","league","club"]){
-      const r = await fetch(`/api/options?column=${id}&filters=${f}`);
-      const data = await r.json();
-      fill(id, data.values || []);
-    }
-    refreshCountBadges();
-  }
-
   function refreshCountBadges(){
-    const counts = {
-      country: document.querySelectorAll('#country option:checked').length,
-      league:  document.querySelectorAll('#league option:checked').length,
-      club:    document.querySelectorAll('#club option:checked').length, // <-- NEW
-    };
-    for (const k of Object.keys(counts)){
-      const el = document.getElementById(`${k}-count`);
-      if (el) el.textContent = counts[k] ? `(${counts[k]} selected)` : '';
-    }
+    const n = k => document.querySelectorAll(`#${k} option:checked`).length;
+    const set = (k,v)=>{ const el = document.getElementById(`${k}-count`); if (el) el.textContent = v ? `(${v} selected)` : ''; };
+    set('country', n('country')); set('league', n('league')); set('club', n('club'));
   }
-
   function enableToggleMulti(id){
     const el = document.getElementById(id);
     el.addEventListener('mousedown', (e) => {
@@ -133,14 +125,104 @@
       }
     });
   }
-  ["country","league","club"].forEach(enableToggleMulti);  // <-- include club
+  ["country","league","club"].forEach(enableToggleMulti);
+
+  function currentFilters(){
+    return {
+      country: selVals("country"),
+      league:  selVals("league"),
+      club:    selVals("club"),
+    };
+  }
+
+  const statusEl = document.getElementById('status');
+  function setStatus(msg){ statusEl.textContent = msg || ''; }
+
+  // ---------- cascade options ----------
+  async function refreshCascades(){
+    const f = encodeURIComponent(JSON.stringify(currentFilters()));
+    // refresh in order so each is scoped by those to its left
+    for (const id of ["country","league","club"]){
+      const r = await fetch(`/api/options?column=${id}&filters=${f}`);
+      const data = await r.json();
+      fill(id, data.values || []);
+    }
+  }
+
+  // ---------- data search + render ----------
+  let map, markersLayer;
+
+  function ensureMap(){
+    if (!map){
+      map = L.map('map');
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
+      // initial safe view
+      map.setView([20, 0], 2);
+      // ensure map renders if container was sized after init
+      setTimeout(()=> map.invalidateSize(), 0);
+    }
+  }
+
+  function renderMarkers(markers){
+    markersLayer.clearLayers();
+    if (!markers || !markers.length){
+      map.setView([20, 0], 2);
+      map.invalidateSize();
+      return;
+    }
+    const bounds = [];
+    markers.forEach(m => {
+      const marker = L.marker([m.lat, m.lng]).bindPopup(
+        `<strong>${m.stadium}</strong><br/>${m.club} — ${m.league}<br/><small>${m.country}</small>`
+      );
+      marker.addTo(markersLayer);
+      bounds.push([m.lat, m.lng]);
+    });
+    try { map.fitBounds(bounds, {padding:[20,20]}); } catch {}
+    map.invalidateSize();
+  }
+
+  function renderTable(rows){
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = (rows||[]).map(r => `
+      <tr>
+        <td>${r.country || ''}</td>
+        <td>${r.league || ''}</td>
+        <td>${r.club || ''}</td>
+        <td>${r.stadium || ''}</td>
+        <td>${r.capacity ?? ''}</td>
+      </tr>
+    `).join('');
+  }
 
   async function search(){
+    setStatus('Loading…');
     const f = encodeURIComponent(JSON.stringify(currentFilters()));
     const res = await fetch(`/api/stadiums/search?filters=${f}`);
     const {rows, markers} = await res.json();
-    // ... (unchanged table + map rendering)
+    renderTable(rows);
+    ensureMap();
+    renderMarkers(markers);
+    setStatus(`${rows.length || 0} result${(rows.length||0)===1?'':'s'}`);
   }
+
+  // ---------- live behavior (like Fixtures) ----------
+  // preload selects (includes club from backend)
+  ["country","league","club"].forEach(id => fill(id, preload[id] || []));
+
+  // Like Fixtures: change in any select => cascade + search (debounced)
+  let t;
+  function kick(){
+    clearTimeout(t);
+    t = setTimeout(async ()=>{ await refreshCascades(); await search(); }, 120);
+  }
+  ["country","league","club"].forEach(id => {
+    document.getElementById(id).addEventListener('change', kick);
+  });
 
   document.getElementById("clearBtn").addEventListener("click", async ()=>{
     ["country","league","club"].forEach(id => document.getElementById(id).selectedIndex = -1);
@@ -148,14 +230,10 @@
     await search();
   });
 
-  document.getElementById("searchBtn").addEventListener("click", async ()=>{
-    await refreshCascades();
-    await search();
-  });
-
   // initial
+  ensureMap();
   refreshCountBadges();
-  search();
-  </script>
+  (async ()=>{ await refreshCascades(); await search(); })();
+</script>
 </body>
 </html>
