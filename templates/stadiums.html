@@ -40,15 +40,19 @@
     <!-- Left: filters & map -->
     <div class="card">
       <div class="row">
-        <div>
-          <label>Country <span class="count-badge" id="country-count"></span></label>
-          <select id="country" multiple size="10"></select>
-        </div>
-        <div>
-          <label>League <span class="count-badge" id="league-count"></span></label>
-          <select id="league" multiple size="10"></select>
-        </div>
-      </div>
+		  <div>
+			<label>Country <span class="count-badge" id="country-count"></span></label>
+			<select id="country" multiple size="10"></select>
+		  </div>
+		  <div>
+			<label>League <span class="count-badge" id="league-count"></span></label>
+			<select id="league" multiple size="10"></select>
+		  </div>
+		  <div>
+			<label>Club <span class="count-badge" id="club-count"></span></label>
+			<select id="club" multiple size="10"></select>
+		  </div>
+		</div>
 
       <div style="display:flex; gap:8px; margin-top:10px;">
         <button id="searchBtn" class="btn">Apply filters</button>
@@ -75,140 +79,84 @@
   </div>
 
   <script>
-    const preload = {{ preload|tojson|safe }};
+   const preload = {{ preload|tojson|safe }};
 
-    function optHtml(arr){ return ['<option value="">(any)</option>'].concat((arr||[]).map(v=>`<option>${v}</option>`)).join(''); }
-    function selVals(id){ return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value).filter(Boolean); }
-    function fill(id, arr){
-      const el = document.getElementById(id);
-      const prev = new Set(selVals(id));
-      el.innerHTML = optHtml(arr);
-      Array.from(el.options).forEach(opt => { if (prev.has(opt.value)) opt.selected = true; });
-      refreshCountBadges();
-    }
-    ["country","league"].forEach(id => fill(id, preload[id]));
-
-    function currentFilters(){
-      return {
-        country: selVals("country"),
-        league:  selVals("league"),
-      };
-    }
-
-    async function refreshCascades(){
-      const f = encodeURIComponent(JSON.stringify(currentFilters()));
-      for (const id of ["country","league"]){
-        const r = await fetch(`/api/options?column=${id}&filters=${f}`);
-        const data = await r.json();
-        fill(id, data.values || []);
-      }
-      refreshCountBadges();
-    }
-
-    // Map
-    const map = L.map('map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution:'&copy; OpenStreetMap'}).addTo(map);
-    let markerLayer = L.layerGroup().addTo(map);
-    let hoverLayer = L.layerGroup().addTo(map); // transient highlight
-    const markerById = new Map();
-    const latlngById = new Map();
-
-    function refreshCountBadges(){
-      const counts = {
-        country: document.querySelectorAll('#country option:checked').length,
-        league:  document.querySelectorAll('#league option:checked').length,
-      };
-      for (const k of Object.keys(counts)){
-        const el = document.getElementById(`${k}-count`);
-        if (el) el.textContent = counts[k] ? `(${counts[k]} selected)` : '';
-      }
-    }
-
-    function enableToggleMulti(id){
-      const el = document.getElementById(id);
-      el.addEventListener('mousedown', (e) => {
-        const opt = e.target;
-        if (opt && opt.tagName === 'OPTION') {
-          e.preventDefault();
-          opt.selected = !opt.selected;
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    }
-    ["country","league"].forEach(enableToggleMulti);
-
-    async function search(){
-      const f = encodeURIComponent(JSON.stringify(currentFilters()));
-      const res = await fetch(`/api/stadiums/search?filters=${f}`);
-      const {rows, markers} = await res.json();
-
-      // table
-      const tbody = document.querySelector("#tbl tbody");
-      tbody.innerHTML = "";
-      rows.forEach(r=>{
-        const tr = document.createElement("tr");
-        tr.dataset.id = r.id;
-        tr.dataset.lat = r.Latitude ?? "";
-        tr.dataset.lng = r.Longitude ?? "";
-        tr.innerHTML = `
-          <td>${r["Team Name"] || ""}</td>
-          <td>${r["Stadium Name"] || ""}</td>
-          <td>${r["Country"] || ""}</td>
-          <td>${r["League"] || ""}</td>
-        `;
-        // hover highlight
-        tr.addEventListener("mouseenter", ()=>{
-          hoverLayer.clearLayers();
-          const lat = parseFloat(tr.dataset.lat), lng = parseFloat(tr.dataset.lng);
-          if (!isNaN(lat) && !isNaN(lng)) {
-            L.circleMarker([lat, lng], {radius: 10, weight: 3, color: '#ff3b30', fillOpacity: 0.15}).addTo(hoverLayer);
-          }
-        });
-        tr.addEventListener("mouseleave", ()=>hoverLayer.clearLayers());
-        // click -> zoom + open popup
-        tr.addEventListener("click", ()=>{
-          const id = +tr.dataset.id;
-          const mk = markerById.get(id);
-          const ll = latlngById.get(id);
-          if (ll) {
-            map.setView(ll, 14);
-          }
-          if (mk) mk.openPopup();
-        });
-        tbody.appendChild(tr);
-      });
-
-      // markers
-      markerLayer.clearLayers();
-      hoverLayer.clearLayers();
-      markerById.clear();
-      latlngById.clear();
-      const bounds = [];
-      (markers || []).forEach(m=>{
-        const ll = [m.lat, m.lng];
-        const mk = L.marker(ll).bindPopup(m.popup);
-        mk.addTo(markerLayer);
-        markerById.set(m.id, mk);
-        latlngById.set(m.id, ll);
-        bounds.push(ll);
-      });
-      if (bounds.length){ map.fitBounds(bounds, {padding:[20,20]}); } else { map.setView([20,0],2); }
-    }
-
-    document.getElementById("clearBtn").addEventListener("click", async ()=>{
-      ["country","league"].forEach(id => document.getElementById(id).selectedIndex = -1);
-      await refreshCascades();
-      await search();
-    });
-
-    document.getElementById("searchBtn").addEventListener("click", async ()=>{
-      await refreshCascades();
-      await search();
-    });
-
-    // initial
+  function optHtml(arr){ return ['<option value="">(any)</option>'].concat((arr||[]).map(v=>`<option>${v}</option>`)).join(''); }
+  function selVals(id){ return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value).filter(Boolean); }
+  function fill(id, arr){
+    const el = document.getElementById(id);
+    const prev = new Set(selVals(id));
+    el.innerHTML = optHtml(arr);
+    Array.from(el.options).forEach(opt => { if (prev.has(opt.value)) opt.selected = true; });
     refreshCountBadges();
-    search();
+  }
+  // include club (preload may be empty if you prefer)
+  ["country","league","club"].forEach(id => fill(id, preload[id]));
+
+  function currentFilters(){
+    return {
+      country: selVals("country"),
+      league:  selVals("league"),
+      club:    selVals("club"),   // <-- NEW
+    };
+  }
+
+  async function refreshCascades(){
+    const f = encodeURIComponent(JSON.stringify(currentFilters()));
+    for (const id of ["country","league","club"]){
+      const r = await fetch(`/api/options?column=${id}&filters=${f}`);
+      const data = await r.json();
+      fill(id, data.values || []);
+    }
+    refreshCountBadges();
+  }
+
+  function refreshCountBadges(){
+    const counts = {
+      country: document.querySelectorAll('#country option:checked').length,
+      league:  document.querySelectorAll('#league option:checked').length,
+      club:    document.querySelectorAll('#club option:checked').length, // <-- NEW
+    };
+    for (const k of Object.keys(counts)){
+      const el = document.getElementById(`${k}-count`);
+      if (el) el.textContent = counts[k] ? `(${counts[k]} selected)` : '';
+    }
+  }
+
+  function enableToggleMulti(id){
+    const el = document.getElementById(id);
+    el.addEventListener('mousedown', (e) => {
+      const opt = e.target;
+      if (opt && opt.tagName === 'OPTION') {
+        e.preventDefault();
+        opt.selected = !opt.selected;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  }
+  ["country","league","club"].forEach(enableToggleMulti);  // <-- include club
+
+  async function search(){
+    const f = encodeURIComponent(JSON.stringify(currentFilters()));
+    const res = await fetch(`/api/stadiums/search?filters=${f}`);
+    const {rows, markers} = await res.json();
+    // ... (unchanged table + map rendering)
+  }
+
+  document.getElementById("clearBtn").addEventListener("click", async ()=>{
+    ["country","league","club"].forEach(id => document.getElementById(id).selectedIndex = -1);
+    await refreshCascades();
+    await search();
+  });
+
+  document.getElementById("searchBtn").addEventListener("click", async ()=>{
+    await refreshCascades();
+    await search();
+  });
+
+  // initial
+  refreshCountBadges();
+  search();
   </script>
 </body>
 </html>

@@ -65,9 +65,19 @@ RESULT_COLUMNS = [
     "stadium_id", "Team Name", "Stadium Name", "Longitude", "Latitude"
 ]
 
+
+
 def q(col: str) -> str:
     # safe double-quote for mixed‑case / spaces
     return '"' + col.replace('"', '""') + '"'
+
+# --- add this helper near the top of app.py (after q())
+COLMAP = {
+    "club": "Team Name",   # stadiums page "Club" picker
+    # everything else maps to itself by default
+}
+def key_to_col(key: str) -> str:
+    return COLMAP.get(key, key)
 
 def retrieve_sql_table(engine, table_name):
     query = text(f'SELECT * FROM "{table_name}"')
@@ -452,7 +462,6 @@ def streak():
 
     return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
-# --- unique stadiums search using current filters (country/league only) ---
 @app.get("/api/stadiums/search")
 def api_stadiums_search():
     import json
@@ -462,23 +471,27 @@ def api_stadiums_search():
         filters = {}
 
     filters = {
-        "country": filters.get("country") or [],
-        "league":  filters.get("league")  or [],
+        "country": (filters.get("country") or []),
+        "league":  (filters.get("league")  or []),
+        "club":    (filters.get("club")    or []),  # <-- NEW
     }
 
     where_sql, params = _build_where_and_params(filters)
 
+    # MIXED-CASE columns:
+    #   "Team Name", "Stadium Name"  (Title Case with spaces)
+    #   country, league, longitude, latitude  (lowercase)
     sql = text(f"""
-        SELECT DISTINCT ON ("team name","stadium name","league")
-               "team name"    AS team_name,
-               "country"      AS country,
-               "league"       AS league,
-               "stadium name" AS stadium_name,
-               "longitude"    AS lon,
-               "latitude"     AS lat
-        FROM "{DATA_TABLE}"
+        SELECT DISTINCT ON ({q('Team Name')}, {q('Stadium Name')}, {q('league')})
+               {q('Team Name')}    AS team_name,
+               {q('country')}      AS country,
+               {q('league')}       AS league,
+               {q('Stadium Name')} AS stadium_name,
+               {q('longitude')}    AS lon,
+               {q('latitude')}     AS lat
+        FROM {q(DATA_TABLE)}
         {where_sql}
-        ORDER BY "team name","stadium name","league"
+        ORDER BY {q('Team Name')}, {q('Stadium Name')}, {q('league')}
     """)
 
     with engine1.connect() as conn:
@@ -519,6 +532,7 @@ def stadiums_home():
         preload = {
             "country": distinct("country"),
             "league":  distinct("league"),
+            "club":    distinct("Team Name"),
         }
     return render_template("stadiums.html", preload=preload)
 
@@ -724,16 +738,17 @@ def _build_where_and_params(filters: dict):
                 params["date_to"] = val
             continue
 
+        col = key_to_col(key)  # <-- NEW
+
         # Multi-select → list: use ANY(CAST(:param AS text[]))
         if isinstance(val, list):
-            # Ensure pure strings (no None)
             cleaned = [v for v in val if v not in (None, "")]
             if not cleaned:
                 continue
-            clauses.append(f"{q(key)} = ANY(CAST(:{key} AS TEXT[]))")
+            clauses.append(f"{q(col)} = ANY(CAST(:{key} AS TEXT[]))")
             params[key] = cleaned
         else:
-            clauses.append(f"{q(key)} = :{key}")
+            clauses.append(f"{q(col)} = :{key}")
             params[key] = val
 
     where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
@@ -741,19 +756,26 @@ def _build_where_and_params(filters: dict):
 
 
 @app.get("/api/options")
-def api_options(): 
+def api_options():
     """
-    Returns the distinct values for a given column using all current filters
-    EXCEPT the column itself AND any columns to its right in the filter order.
-    This prevents 'backwards' influence between pickers.
+    Returns distinct values for a given column using current filters,
+    excluding the column itself and any columns to its right in the page's order.
     """
     import json
     column = request.args.get("column")
 
-    # The left-to-right dependency order used on the page:
-    ORDER = ["country", "league", "home", "away"]
+    # Two pages use this endpoint:
+    # - fixtures page: ["country","league","home","away"]
+    # - stadiums page: ["country","league","club"]  (club maps to "Team Name")
+    STADIUMS_ORDER = ["country", "league", "club"]
+    FIXTURES_ORDER = ["country", "league", "home", "away"]
 
-    if column not in ORDER:
+    # choose which ORDER applies based on requested column
+    if column in STADIUMS_ORDER:
+        ORDER = STADIUMS_ORDER
+    elif column in FIXTURES_ORDER:
+        ORDER = FIXTURES_ORDER
+    else:
         return jsonify({"values": []}), 400
 
     try:
@@ -761,24 +783,26 @@ def api_options():
     except Exception:
         filters = {}
 
-    # Ignore self and anything to the right (later pickers)
+    # Drop self and anything to the right
     idx = ORDER.index(column)
     for k in ORDER[idx:]:
         filters.pop(k, None)
 
-    # Build query with remaining filters (dates still apply)
+    # Build WHERE with mapped columns
     where_sql, params = _build_where_and_params(filters)
+
+    # Map requested logical column to actual DB column
+    actual_col = key_to_col(column)
+
     sql = text(
-        f"SELECT DISTINCT {q(column)} AS v FROM {q(DATA_TABLE)}{where_sql} "
-        f"{' AND ' if where_sql else ' WHERE '}{q(column)} IS NOT NULL "
+        f"SELECT DISTINCT {q(actual_col)} AS v FROM {q(DATA_TABLE)}{where_sql} "
+        f"{' AND ' if where_sql else ' WHERE '}{q(actual_col)} IS NOT NULL "
         f"ORDER BY 1"
     )
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
-        
-        
 
-    return jsonify({"values": [r["v"] for r in rows if r["v"] is not None]})
+    return jsonify({"values": [r['v'] for r in rows if r['v'] is not None]})
 
 
 @app.get("/api/search")
