@@ -167,8 +167,14 @@
       setTimeout(()=> map.invalidateSize(), 0);
     }
   }
- function renderMarkers(markers){
+  let highlightedKey = null;
+
+  function keyFrom(m){ return `${m.team_name}||${m.stadium_name}`; }
+
+  function renderMarkers(markers){
     markersLayer.clearLayers();
+    Object.keys(markerIndex).forEach(k => delete markerIndex[k]);
+
     if (!markers || !markers.length){
       map.setView([20, 0], 2);
       map.invalidateSize();
@@ -181,18 +187,30 @@
         ${m.team_name} — <small>${m.country}</small><br/>
         <small>Lon ${m.lon}, Lat ${m.lat}</small>
       `;
-      const marker = L.circleMarker([m.lat, m.lon], { radius: 6 }).bindPopup(popup);
-      marker.addTo(markersLayer);
+      const cm = L.circleMarker([m.lat, m.lon], { radius: 6 });
+      cm.bindPopup(popup).addTo(markersLayer);
+      const k = keyFrom(m);
+      markerIndex[k] = cm;
+      bounds.push([m.lat, m.lat ? m.lon : m.lon]); // keep bounds growing
       bounds.push([m.lat, m.lon]);
     });
     try { map.fitBounds(bounds, {padding:[20,20]}); } catch {}
     map.invalidateSize();
   }
 
-   function renderTable(rows){
+  function highlightMarker(key, on){
+    const m = markerIndex[key];
+    if (!m) return;
+    m.setStyle(on ? { radius: 9, weight: 2 } : { radius: 6, weight: 1 });
+    if (on) m.bringToFront();
+  }
+
+  function rowKey(r){ return `${r.team_name}||${r.stadium_name}`; }
+
+  function renderTable(rows){
     const tbody = document.getElementById('tbody');
     tbody.innerHTML = (rows||[]).map(r => `
-      <tr>
+      <tr data-key="${rowKey(r)}">
         <td>${r.team_name || ''}</td>
         <td>${r.country || ''}</td>
         <td>${r.stadium_name || ''}</td>
@@ -200,8 +218,28 @@
         <td>${r.lat ?? ''}</td>
       </tr>
     `).join('');
-  }
-
+	// Hover → highlight
+		tbody.querySelectorAll('tr').forEach(tr => {
+		  tr.addEventListener('mouseenter', () => {
+			const k = tr.getAttribute('data-key');
+			highlightedKey = k;
+			highlightMarker(k, true);
+		  });
+		  tr.addEventListener('mouseleave', () => {
+			const k = tr.getAttribute('data-key');
+			if (k === highlightedKey) highlightedKey = null;
+			highlightMarker(k, false);
+		  });
+		  tr.addEventListener('click', () => {
+			const k = tr.getAttribute('data-key');
+			const m = markerIndex[k];
+			if (!m) return;
+			const ll = m.getLatLng();
+			map.setView(ll, Math.max(map.getZoom(), 10), { animate: true });
+			m.openPopup();
+		  });
+		});
+	  }	
   async function search(){
     setStatus('Loading…');
     const f = encodeURIComponent(JSON.stringify(currentFilters()));

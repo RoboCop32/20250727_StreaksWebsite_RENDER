@@ -20,7 +20,7 @@
     #map { height: 520px; border-radius:12px; }
     table { width:100%; border-collapse: collapse; }
     th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
-    th { background:#fafafa; position: sticky; top:0; }
+    th { background:#fafafa; position: static; top:0; }
     .row { display:grid; grid-template-columns: repeat(6, 1fr); gap: var(--gap); }
     @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } .row { grid-template-columns: repeat(2,1fr) } }
 	#tbl tbody tr { cursor: pointer; }
@@ -32,7 +32,7 @@
 	}
 	
 	#tbl thead th {
-  position: sticky;
+  position: static;
   top: 0;
   background: #fff;          /* solid background so rows don't show through */
   z-index: 3;                /* keep it above the scrolling rows */
@@ -206,7 +206,7 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th>Date</th><th>League</th><th>Home</th><th>Away</th>
+            <th>Date</th><th>Time</th><th>League</th><th>Home</th><th>Away</th>
             <th>Country</th><th>Stadium</th>
           </tr>
         </thead>
@@ -269,8 +269,8 @@ function currentFilters(){
     league:  selVals("league"),
     home:    selVals("home"),
     away:    selVals("away"),
-    date_from: document.getElementById("date_from").value || "",
-    date_to:   document.getElementById("date_to").value || ""
+    date_from: (document.getElementById("date_from").value || "").slice(0, 10),
+    date_to:   (document.getElementById("date_to").value || "").slice(0, 10)
   };
 }
 
@@ -331,6 +331,7 @@ async function refreshCascades(){
     markersLayer.clearLayers();
     markersById = {};
     const bounds = [];
+	
 
     // build table + events + markers together so we share unique_id
     rows.forEach(item => {
@@ -338,9 +339,10 @@ async function refreshCascades(){
       tr.dataset.id = item.unique_id;
       tr.dataset.lat = item.Latitude ?? item.latitude ?? "";
       tr.dataset.lon = item.Longitude ?? item.longitude ?? "";
-
+		const d = (item.date || '').slice(0, 10);
       tr.innerHTML = `
-        <td>${cleanDate(item.date) || ""}</td>
+        <td>${(item.date).slice(0, 10) || ""}</td>
+		<td>${item.time || ''}</td> 
         <td>${item.league ?? ""}</td>
         <td>${item.home ?? ""}</td>
         <td>${item.away ?? ""}</td>
@@ -356,7 +358,7 @@ async function refreshCascades(){
         const marker = L.circleMarker([lat, lon], {
           radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
         }).bindPopup(
-          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${cleanDate(item.date)})`
+          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, 10)})`
         );
 
         markersLayer.addLayer(marker);
@@ -407,7 +409,7 @@ async function refreshCascades(){
 		  div.innerHTML += `
 			<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
 			  <span style="display:inline-block;width:14px;height:14px;background:${dateColors[d]};border:1px solid #00000055"></span>
-			  <span>${cleanDate(d)}</span>
+			  <span>${(d).slice(0, 10)}</span>
 			</div>`;
 		});
 		return div;
