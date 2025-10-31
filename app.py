@@ -430,7 +430,10 @@ def load_data():
         g.df_data = pd.DataFrame(app.config.get("df_data", []))
         
         
-
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("home.html")
+    
 @app.route("/streak", methods=["GET", "POST"]) #so this is the Main page. Each flask route is mapped to a specific URL, and executes a python function when accessed
 def streak():
     combined_streak_view = "combined_stadium_streaks_view2"
@@ -519,7 +522,7 @@ def api_stadiums_search():
     return jsonify({"rows": out_rows, "markers": markers})
 
 # --- homepage -> Stadiums ---
-@app.route("/", methods=["GET"])
+@app.route("/stadiums", methods=["GET"]) #this is called a decorator apparently
 def stadiums_home():
     with engine1.connect() as conn:
         def distinct(col):

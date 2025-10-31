@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Football Mapped — Welcome</title>
+  <style>
+    :root { --gap: 16px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #f7f7f7; color:#111; }
+    .wrap { min-height: 100vh; display:grid; place-items:center; padding: 32px; }
+    .card { background:#fff; border:1px solid #e7e7e7; border-radius:16px; padding:28px; max-width: 720px; width:100%; box-shadow: 0 5px 20px rgba(0,0,0,.04) }
+    h1 { margin: 0 0 12px; font-size: clamp(28px, 3.5vw, 40px); letter-spacing:.2px; }
+    p { color:#444; line-height:1.5; margin: 0 0 20px; }
+    .buttons { display:flex; flex-wrap:wrap; gap: var(--gap); margin-top: 8px; }
+    .btn { display:inline-block; padding: 12px 16px; border:1px solid #ddd; border-radius:12px; background:#fafafa; color:#111; text-decoration:none; font-weight:600; }
+    .btn:hover { background:#f0f0f0 }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Football Mapped</h1>
+      <p>
+        Explore stadiums and fixtures on an interactive map, and analyze country-by-country streaks.
+        Use the buttons below to jump straight in.
+      </p>
+      <div class="buttons">
+        <a class="btn" href="/stadiums">Stadiums</a>
+        <a class="btn" href="/filters">Fixtures</a>
+        <a class="btn" href="/streak">Streaks</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
