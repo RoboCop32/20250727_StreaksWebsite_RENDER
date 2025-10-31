@@ -42,6 +42,14 @@
   }
   #map { width: 100%; min-height: 480px; border-radius: 10px; }
   #tableCard { max-height: 480px; overflow: auto; }
+  /* Make table rows show a pointer cursor and subtle hover effect */
+	#tableCard table tbody tr {
+	  cursor: pointer;
+	  transition: background 0.15s ease;
+	}
+	#tableCard table tbody tr:hover {
+	  background: #eef6ff; /* light blue highlight on hover */
+	}
 
 </style>
 </head>
