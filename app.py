@@ -55,6 +55,8 @@ engine1 = create_engine(db_url)
 
 main_table_name = "fixtures_stadium_combined_20250901"
 
+STADIUMS_TABLE = "stadiums_20250901"  # matches your screenshot
+
 show_lines = True  # Default: Show arrows
 
 # ===== NEW: config for filter page =====
@@ -469,55 +471,58 @@ def streak():
 def api_stadiums_search():
     import json
     try:
-        filters = json.loads(request.args.get("filters") or "{}")
+        raw = json.loads(request.args.get("filters") or "{}")
     except Exception:
-        filters = {}
+        raw = {}
 
+    # We still let Country/League/Club filter via the combined fixtures table:
     filters = {
-        "country": (filters.get("country") or []),
-        "league":  (filters.get("league")  or []),
-        "club":    (filters.get("club")    or []),  # <-- NEW
+        "country": (raw.get("country") or []),   # logical -> "country" in combined table
+        "league":  (raw.get("league")  or []),   # logical -> "league" in combined table
+        "club":    (raw.get("club")    or []),   # logical -> "Team Name" via key_to_col
     }
 
     where_sql, params = _build_where_and_params(filters)
 
-    # MIXED-CASE columns:
-    #   "Team Name", "Stadium Name"  (Title Case with spaces)
-    #   country, league, longitude, latitude  (lowercase)
+    # 1) Find clubs that match filters in the combined table
+    # 2) Join to stadiums table for coordinates + stadium attributes
     sql = text(f"""
-        SELECT DISTINCT ON ({q('Team Name')}, {q('Stadium Name')}, {q('league')})
-               {q('Team Name')}    AS team_name,
-               {q('country')}      AS country,
-               {q('league')}       AS league,
-               {q('Stadium Name')} AS stadium_name,
-               {q('Longitude')}    AS lon,
-               {q('Latitude')}     AS lat
-        FROM {q(DATA_TABLE)}
-        {where_sql}
-        ORDER BY {q('Team Name')}, {q('Stadium Name')}, {q('league')}
+        WITH clubs AS (
+          SELECT DISTINCT {q('Team Name')} AS team_name
+          FROM {q(DATA_TABLE)}
+          {where_sql}
+        )
+        SELECT
+          s.{q('Team Name')}    AS team_name,
+          s.{q('Country')}      AS country,
+          s.{q('Stadium Name')} AS stadium_name,
+          s.{q('Longitude')}::float AS lon,
+          s.{q('Latitude')}::float  AS lat
+        FROM {q(STADIUMS_TABLE)} s
+        JOIN clubs c ON c.team_name = s.{q('Team Name')}
+        ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
     """)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
 
-    out_rows, markers = [], []
-    for i, r in enumerate(rows):
-        out_rows.append({
-            "id": i,
-            "Team Name":    r["team_name"],
-            "Country":      r["country"],
-            "League":       r["league"],
-            "Stadium Name": r["stadium_name"],
-            "Longitude":    r["lon"],
-            "Latitude":     r["lat"],
-        })
-        if r["lat"] is not None and r["lon"] is not None:
-            markers.append({
-                "id": i,
-                "lat": float(r["lat"]),
-                "lng": float(r["lon"]),
-                "popup": f"{r['stadium_name'] or ''} — {r['team_name'] or ''}<br>{r['league'] or ''} · {r['country'] or ''}"
-            })
+    # table rows
+    out_rows = [{
+        "team_name":   r["team_name"],
+        "country":     r["country"],
+        "stadium_name":r["stadium_name"],
+        "lon":         r["lon"],
+        "lat":         r["lat"],
+    } for r in rows]
+
+    # markers for Leaflet
+    markers = [{
+        "team_name":   r["team_name"],
+        "country":     r["country"],
+        "stadium_name":r["stadium_name"],
+        "lon":         r["lon"],
+        "lat":         r["lat"],
+    } for r in rows if r["lat"] is not None and r["lon"] is not None]
 
     return jsonify({"rows": out_rows, "markers": markers})
 
