@@ -152,6 +152,7 @@
 
   // ---------- data search + render ----------
   let map, markersLayer;
+  const markerIndex = {};
 
   function ensureMap(){
     if (!map){
@@ -191,7 +192,6 @@
       cm.bindPopup(popup).addTo(markersLayer);
       const k = keyFrom(m);
       markerIndex[k] = cm;
-      bounds.push([m.lat, m.lat ? m.lon : m.lon]); // keep bounds growing
       bounds.push([m.lat, m.lon]);
     });
     try { map.fitBounds(bounds, {padding:[20,20]}); } catch {}

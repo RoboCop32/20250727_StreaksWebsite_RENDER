@@ -269,8 +269,8 @@ function currentFilters(){
     league:  selVals("league"),
     home:    selVals("home"),
     away:    selVals("away"),
-    date_from: (document.getElementById("date_from").value || "").slice(0, 10),
-    date_to:   (document.getElementById("date_to").value || "").slice(0, 10)
+    date_from: (document.getElementById("date_from").value || "").slice(0, -8),
+    date_to:   (document.getElementById("date_to").value || "").slice(0,  -8)
   };
 }
 
@@ -339,9 +339,9 @@ async function refreshCascades(){
       tr.dataset.id = item.unique_id;
       tr.dataset.lat = item.Latitude ?? item.latitude ?? "";
       tr.dataset.lon = item.Longitude ?? item.longitude ?? "";
-		const d = (item.date || '').slice(0, 10);
+		const d = (item.date || '').slice(0, -8);
       tr.innerHTML = `
-        <td>${(item.date).slice(0, 10) || ""}</td>
+        <td>${(item.date).slice(0, -8) || ""}</td>
 		<td>${item.time || ''}</td> 
         <td>${item.league ?? ""}</td>
         <td>${item.home ?? ""}</td>
@@ -409,7 +409,7 @@ async function refreshCascades(){
 		  div.innerHTML += `
 			<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
 			  <span style="display:inline-block;width:14px;height:14px;background:${dateColors[d]};border:1px solid #00000055"></span>
-			  <span>${(d).slice(0, 10)}</span>
+			  <span>${(d).slice(0, -8)}</span>
 			</div>`;
 		});
 		return div;
