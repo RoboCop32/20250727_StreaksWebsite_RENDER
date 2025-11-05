@@ -53,7 +53,7 @@ engine1 = create_engine(db_url)
 #engine1 = create_engine(signin_info)
 
 
-main_table_name = "fixtures_stadium_combined_20250901"
+main_table_name = "fixtures_stadium_combined_20251005"
 
 STADIUMS_TABLE = "stadiums_20250901"  # matches your screenshot
 
