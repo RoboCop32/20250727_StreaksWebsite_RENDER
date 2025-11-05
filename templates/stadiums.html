@@ -91,10 +91,13 @@
 <div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 95%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 40px;" hidden>
 	  <h1>Stadiums - Mapped</h1>
 	  
-	  <p>Stadiums locations were geocoded based on the team name and country, using the nominatim API. Where the stadium was not found, the name of the town was geocoded. Where no information was found, nothing was geocoded - these will have to be added in manually at a later date (when I can be bothered!). Out of 1013 teams, 749 were geocoded to the stadium, 219 were geocoded to the town, and 45 were not geocoded. However those that were geocoded can sometimes be wrong, e.g. if a stadium has an address name e.g. Vicarage Road (Watford). A long way of saying- not all of this is correct; manual checks are needed! If you see any that are wrong feel free to email footballmapped@proton.me.</p>
-	  <button onclick="hideWelcome()" id="begin-btn">BEGIN</button>
+	  <p>Stadiums locations were geocoded based on the team name and country, using the nominatim API. Where the stadium was not found, the name of the town was geocoded. Where no information was found, nothing was geocoded - these will have to be added in manually at a later date (when I can be bothered!). </p>
+	  <p>Out of 1013 teams, 749 were geocoded to the stadium, 219 were geocoded to the town, and 45 were not geocoded. However those that were geocoded can sometimes be wrong, e.g. if a stadium has an address name e.g. Vicarage Road (Watford). A long way of saying- not all of this is correct; manual checks are needed! If you see any that are wrong feel free to email footballmapped@proton.me.</p>
+	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
+	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
+	  <button id="begin-btn" onclick="hideWelcome()" >BEGIN</button>
 	  <h3> Current leagues included: </h3>
-	  <p>
+	  
 	    <br> Premier League - England</br>
 		<br> Championship - England</br>
 		<br> League One - England</br>
@@ -153,7 +156,7 @@
 		<br> OBOS-ligaen - Norway<br/>
 		<br> Allsvenskan - Sweden<br/>
 		<br> Superettan - Sweden<br/>
-	  </p>
+	  
 	  <p>Disclaimer: Whilst every care is taken to ensure accuracy, the information provided in this website may not be complete or fully accurate. Please double-check before relying on it.</p>
 	  <p>Any issues please contact: footballmapped@proton.me</p>
 	  <br></br>
