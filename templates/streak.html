@@ -374,7 +374,7 @@
 			const { latitude: lat, longitude: lon, unique_id: id } = row;
 			if (lat == null || lon == null) return;
 
-			let popupText = `$({row.date}).slice(0, -12): ${row.home} vs ${row.away}`;
+			let popupText = `${row.date}: ${row.home} vs ${row.away}`;
 			if (options.withArrows && index === 0) popupText = "START: " + popupText;
 			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
 
