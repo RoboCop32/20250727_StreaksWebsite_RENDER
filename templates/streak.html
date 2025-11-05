@@ -11,9 +11,9 @@
             /* your blue background */
   body {background: #59A6FF; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
   header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
-  .filter-btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#000; background:#59A6FF; font-size: 15px; }
+  .filter-btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#000; background:#59A6FF; font-size: 15px; font-weight: bold; }
   .filter-btn:hover { background:#f0f0f0 }
-  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
+  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa; font-weight: bold; }
   .btn:hover { background:#f0f0f0 }
   .grid { display:grid; grid-template-columns: 1fr; gap: var(--gap); }
   .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff }
@@ -526,7 +526,7 @@
 			  });
 
 			// ✅ Update filter button text
-			document.getElementById("filter-btn").textContent = showFiltered ? "Show Original" : "Filter";
+			document.getElementById("filter-btn").textContent = showFiltered ? "Show Original" : "Filter for Shortest Route";
 		});
 
 		document.getElementById("toggle-lines-btn").addEventListener("click", () => {
