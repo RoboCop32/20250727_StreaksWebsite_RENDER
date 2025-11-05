@@ -53,6 +53,23 @@
 	  overflow: auto;
 	  max-height: 560px;
 	}
+	.begin-btn {
+	  background: #59A6FF;       /* blue like your theme */
+	  color: #fff;
+	  border: none;
+	  border-radius: 12px;
+	  padding: 14px 30px;
+	  font-size: 25px;
+	  font-weight: 600;
+	  cursor: pointer;
+	  transition: background 0.2s ease, transform 0.1s ease;
+	  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+	}
+
+	.begin-btn:hover {
+	  background: #2E8BFF;
+	  transform: translateY(-2px);
+	}
   </style>
 </head>
 <body>
@@ -100,7 +117,7 @@
 	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
 	  <p>Markers are color-coded by fixture date; see the legend in the bottom-right corner.</p>
 	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
-	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;font-size:25px;">BEGIN</button>
+	  <button id="begin-btn" class="btn btn-primary">BEGIN</button>
 	  <h3> Current leagues included: </h3>
 	  <p>
 	    <br> Premier League - England</br>
@@ -321,7 +338,7 @@ async function refreshCascades(){
 
     // build unique dates (sorted) to color markers consistently
     const rows = (data.rows || []);
-    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean).slice(0,-12))).sort((a, b) => new Date(a) - new Date(b));
+    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort((a, b) => new Date(a) - new Date(b));
     const dateColors = {};
     dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
 	
@@ -354,7 +371,7 @@ async function refreshCascades(){
       const lat = Number(item.Latitude ?? item.latitude);
       const lon = Number(item.Longitude ?? item.longitude);
       if (!isNaN(lat) && !isNaN(lon)){
-        const color = dateColors[item.date.slice(0,-12)] || "#999";
+        const color = dateColors[item.date] || "#999";
         const marker = L.circleMarker([lat, lon], {
           radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
         }).bindPopup(
@@ -409,7 +426,7 @@ async function refreshCascades(){
 		  div.innerHTML += `
 			<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
 			  <span style="display:inline-block;width:14px;height:14px;background:${dateColors[d]};border:1px solid #00000055"></span>
-			  <span>${d}</span>
+			  <span>${(d).slice(0,-12)}</span>
 			</div>`;
 		});
 		return div;

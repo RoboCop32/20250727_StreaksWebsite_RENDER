@@ -37,10 +37,26 @@
 	#filtered-data-table tbody tr { cursor: pointer; }
 	.grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
 	@media (max-width: 1100px) { .grid { grid-template-columns: 1fr } }
+.begin-btn {
+  background: #59A6FF;       /* blue like your theme */
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 30px;
+  font-size: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.begin-btn:hover {
+  background: #2E8BFF;
+  transform: translateY(-2px);
+}
 </style>
 		
-		
-    </style>
+	
 </head>
 <body>
 
@@ -74,7 +90,7 @@
 	  <br>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
 	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</br>
 	  <br>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</br>
-	  <button onclick="hideWelcome()" style="margin-top:20px; font-size:25px;">BEGIN</button>
+	  <button onclick="hideWelcome()" >BEGIN</button>
 	  <h3> Current leagues included: </h3>
 	  <p>
 	    <br> Premier League - England</br>
