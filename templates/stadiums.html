@@ -15,7 +15,7 @@
   .btn:hover { background:#f0f0f0 }
 
   .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff; position:relative; }
-
+	#welcome-screen.hidden { opacity:0; pointer-events:none; }
   /* Filters: 3 thin columns in a row */
   .filters-row {
     display:grid;
@@ -50,9 +50,111 @@
 	#tableCard table tbody tr:hover {
 	  background: #eef6ff; /* light blue highlight on hover */
 	}
+	.begin-btn {
+	  background: #59A6FF;       /* blue like your theme */
+	  color: #fff;
+	  border: none;
+	  border-radius: 12px;
+	  padding: 14px 30px;
+	  font-size: 35px;
+	  font-weight: 600;
+	  cursor: pointer;
+	  transition: background 0.2s ease, transform 0.1s ease;
+	  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+	}
 
+	.begin-btn:hover {
+	  background: #2E8BFF;
+	  transform: translateY(-2px);
+	}
 </style>
 </head>
+	<button onclick="showWelcomeAgain()" style="
+	  position: fixed;
+	  top: 10px;
+	  z-index: 9990;
+	  right: 10px;
+	  margin: 10px;
+	  padding: 10px 15px;
+	  font-size: 16px;
+	  
+	  color: #383838;
+	  border: none;
+	  border-radius: 5px;
+	">
+	  i
+	</button>
+    
+<div id="welcome-screen" style="position: fixed; z-index: 9999; top: 0; left: 0; width: 95%; height: 100%; background: white; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; transition: opacity 0.5s ease;padding: 40px;" hidden>
+	  <h1>Welcome to the Football Streak Finder App</h1>
+	  
+	  <p>Stadiums locations were geocoded based on the team name and country, using the nominatim API. Where the stadium was not found, the name of the town was geocoded. Where no information was found, nothing was geocoded - these will have to be added in manually at a later date (when I can be bothered!). Out of 1013 teams, 749 were geocoded to the stadium, 219 were geocoded to the town, and 45 were not geocoded. However those that were geocoded can sometimes be wrong, e.g. if a stadium has an address name e.g. Vicarage Road (Watford). A long way of saying- not all of this is correct; manual checks are needed! If you see any that are wrong feel free to email footballmapped@proton.me.</p>
+	  <button onclick="hideWelcome()" id="begin-btn">BEGIN</button>
+	  <h3> Current leagues included: </h3>
+	  <p>
+	    <br> Premier League - England</br>
+		<br> Championship - England</br>
+		<br> League One - England</br>
+		<br> League Two - England</br>
+		<br> National League - England</br>
+		<br> National League North - England</br>
+		<br> National League South - England</br>
+		<br> Scottish Premiership - Scotland</br>
+		<br> Scottish Championship - Scotland</br>
+		<br> Bundesliga - Germany</br>
+		<br> Bundesliga 2 - Germany</br>
+		<br> Bundesliga 3 - Germany</br>
+		<br> La Liga - Spain<br/>
+		<br> La Liga 2 - Spain<br/>
+		<br> Primera RFEF - 1 - Spain<br/>
+		<br> Primera RFEF - 2 - Spain<br/>
+		<br> Ligue 1 - France<br/>
+		<br> Ligue 2 - France<br/>
+		<br> National (France) - France<br/>
+		<br> Liga Portugal - Portugal<br/>
+		<br> Liga Portugal 2 - Portugal<br/>
+		<br> Serie A - Italy<br/>
+		<br> Serie B - Italy<br/>
+		<br> Serie C - A - Italy<br/>
+		<br> Serie C - B - Italy<br/>
+		<br> Serie C - C - Italy<br/>
+		<br> Chance Liga - Czech Republic<br/>
+		<br> Super League (Greece) - Greece<br/>
+		<br> Liga 1 - Romania<br/>
+		<br> Liga 2 - Romania<br/>
+		<br> Super Liga - Serbia<br/>
+		<br> Parva Liga - Bulgaria<br/>
+		<br> Vtora Liga - Bulgaria<br/>
+		<br> ChNl - Czech Republic<br/>
+		<br> Eerste Divisie - Netherlands<br/>
+		<br> Eredivise - Netherlands<br/>
+		<br> Jupiler Pro League - Belgium<br/>
+		<br> Super League (Switzerland) - Switzerland<br/>
+		<br> Challenger League - Switzerland<br/>
+		<br> Super Lig - Turkey<br/>
+		<br> 2. Lig Red Group - Turkey<br/>
+		<br> BGL Ligue - Luxembourg<br/>
+		<br> Bundesliga Austria - Austria<br/>
+		<br> Ekstraklasa - Poland<br/>
+		<br> Division 1 (Poland) - Poland<br/>
+		<br> Division 2 (Poland) - Poland<br/>
+		<br> Premier Division (Ireland) - Ireland<br/>
+		<br> Division 1 (Ireland) - Ireland<br/>
+		<br> Superliga - Denmark<br/>
+		<br> 1st Division (Denmark) - Denmark<br/>
+		<br> NB I. - Hungary<br/>
+		<br> NB II. - Hungary<br/>
+		<br> HNL - Croatia<br/>
+		<br> Prva NL - Croatia<br/>
+		<br> Eliteserien - Norway<br/>
+		<br> OBOS-ligaen - Norway<br/>
+		<br> Allsvenskan - Sweden<br/>
+		<br> Superettan - Sweden<br/>
+	  </p>
+	  <p>Disclaimer: Whilst every care is taken to ensure accuracy, the information provided in this website may not be complete or fully accurate. Please double-check before relying on it.</p>
+	  <p>Any issues please contact: footballmapped@proton.me</p>
+	  <br></br>
+	</div>
 <body>
   <header>
     <h2 style="margin:0">Stadium Explorer</h2>
@@ -135,7 +237,31 @@
     });
   }
   ["country","league","club"].forEach(enableToggleMulti);
+  
+  function hideWelcome() {
+	  const welcome = document.getElementById("welcome-screen");
+	  welcome.style.display = "none";
+	  welcome.setAttribute("hidden", true);
+	  sessionStorage.setItem("welcomeShown", "true");
+	}
 
+	function showWelcomeAgain() {
+	const welcome = document.getElementById("welcome-screen");
+	welcome.style.display = "flex";
+	}
+	document.addEventListener("DOMContentLoaded", () => {
+	  const welcome = document.getElementById("welcome-screen");
+	  const alreadyShown = sessionStorage.getItem("welcomeShown");
+	  console.log("SessionStorage says welcomeShown:", alreadyShown);
+	  
+	  if (alreadyShown === "true") {
+		welcome.setAttribute("hidden", true);
+		welcome.style.display = "none";
+	  } else {
+		welcome.removeAttribute("hidden");
+		welcome.style.display = "flex";
+	  }
+	});
   function currentFilters(){
     return {
       country: selVals("country"),
