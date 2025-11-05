@@ -100,7 +100,7 @@
 	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
 	  <p>Markers are color-coded by fixture date; see the legend in the bottom-right corner.</p>
 	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
-	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;">BEGIN</button>
+	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;font-size: 15px;">BEGIN</button>
 	  <h3> Current leagues included: </h3>
 	  <p>
 	    <br> Premier League - England</br>
@@ -269,8 +269,8 @@ function currentFilters(){
     league:  selVals("league"),
     home:    selVals("home"),
     away:    selVals("away"),
-    date_from: (document.getElementById("date_from").value || ""),
-    date_to:   (document.getElementById("date_to").value || "")
+    date_from: (document.getElementById("date_from").value || "").slice(0, -12),
+    date_to:   (document.getElementById("date_to").value || "").slice(0,  -12)
   };
 }
 
@@ -321,10 +321,7 @@ async function refreshCascades(){
 
     // build unique dates (sorted) to color markers consistently
     const rows = (data.rows || []);
-    const dateSet = Array.from(new Set(
-	rows.map(r => cleanDate(r.date)).filter(Boolean)
-	)).sort((a, b) => new Date(a) - new Date(b));
-	
+    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort((a, b) => new Date(a) - new Date(b));
     const dateColors = {};
     dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
 	
@@ -357,12 +354,12 @@ async function refreshCascades(){
       const lat = Number(item.Latitude ?? item.latitude);
       const lon = Number(item.Longitude ?? item.longitude);
       if (!isNaN(lat) && !isNaN(lon)){
-        const color = dateColors[cleanDate(item.date)] || "#999";
+        const color = dateColors[item.date] || "#999";
         const marker = L.circleMarker([lat, lon], {
           radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
         }).bindPopup(
-		  `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${cleanDate(item.date)})`
-		);
+          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, 10)})`
+        );
 
         markersLayer.addLayer(marker);
         markersById[item.unique_id] = marker;

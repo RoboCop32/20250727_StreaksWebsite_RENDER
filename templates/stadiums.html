@@ -196,7 +196,12 @@
         ${m.team_name} — <small>${m.country}</small><br/>
         <small>Lon ${m.lon}, Lat ${m.lat}</small>
       `;
-      const cm = L.circleMarker([m.lat, m.lon], { radius: 6 });
+      const cm = L.circleMarker([m.lat, m.lon], {
+		  radius: 5,
+		  color: '#FF0000',      // outline color
+		  fillColor: '#FF6666',  // inner fill color
+		  fillOpacity: 0.8
+		});
       cm.bindPopup(popup).addTo(markersLayer);
       const k = keyFrom(m);
       markerIndex[k] = cm;
@@ -209,7 +214,7 @@
   function highlightMarker(key, on){
     const m = markerIndex[key];
     if (!m) return;
-    m.setStyle(on ? { radius: 9, weight: 2 } : { radius: 6, weight: 1 });
+    m.setStyle(on ? { radius: 8, weight: 2 } : { radius: 5, weight: 1 });
     if (on) m.bringToFront();
   }
 
