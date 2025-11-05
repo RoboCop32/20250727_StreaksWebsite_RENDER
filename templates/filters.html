@@ -73,7 +73,7 @@
 	  padding: 10px 15px;
 	  font-size: 16px;
 	  
-	  color: white;
+	  color: #383838;
 	  border: none;
 	  border-radius: 5px;
 	">
@@ -100,7 +100,7 @@
 	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
 	  <p>Markers are color-coded by fixture date; see the legend in the bottom-right corner.</p>
 	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
-	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;font-size: 15px;">BEGIN</button>
+	  <button id="begin-btn" class="btn btn-primary" style="margin-top:20px;font-size:25px;">BEGIN</button>
 	  <h3> Current leagues included: </h3>
 	  <p>
 	    <br> Premier League - England</br>
@@ -269,8 +269,8 @@ function currentFilters(){
     league:  selVals("league"),
     home:    selVals("home"),
     away:    selVals("away"),
-    date_from: (document.getElementById("date_from").value || "").slice(0, -12),
-    date_to:   (document.getElementById("date_to").value || "").slice(0,  -12)
+    date_from: (document.getElementById("date_from").value || ""),
+    date_to:   (document.getElementById("date_to").value || "")
   };
 }
 
@@ -321,7 +321,7 @@ async function refreshCascades(){
 
     // build unique dates (sorted) to color markers consistently
     const rows = (data.rows || []);
-    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean))).sort((a, b) => new Date(a) - new Date(b));
+    const dateSet = Array.from(new Set(rows.map(r => r.date).filter(Boolean).slice(0,-12))).sort((a, b) => new Date(a) - new Date(b));
     const dateColors = {};
     dateSet.forEach((d, i) => dateColors[d] = COLORS[i % COLORS.length]);
 	
@@ -339,7 +339,7 @@ async function refreshCascades(){
       tr.dataset.id = item.unique_id;
       tr.dataset.lat = item.Latitude ?? item.latitude ?? "";
       tr.dataset.lon = item.Longitude ?? item.longitude ?? "";
-		const d = (item.date || '').slice(0, -12);
+		
       tr.innerHTML = `
         <td>${(item.date).slice(0, -12) || ""}</td>
 		<td>${item.time || ''}</td> 
@@ -354,11 +354,11 @@ async function refreshCascades(){
       const lat = Number(item.Latitude ?? item.latitude);
       const lon = Number(item.Longitude ?? item.longitude);
       if (!isNaN(lat) && !isNaN(lon)){
-        const color = dateColors[item.date] || "#999";
+        const color = dateColors[item.date.slice(0,-12)] || "#999";
         const marker = L.circleMarker([lat, lon], {
           radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
         }).bindPopup(
-          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, 10)})`
+          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, -12)})`
         );
 
         markersLayer.addLayer(marker);
