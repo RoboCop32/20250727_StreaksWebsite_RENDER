@@ -11,6 +11,8 @@
             /* your blue background */
   body {background: #59A6FF; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
   header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
+  .filter-btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#000; background:#59A6FF; font-size: 15px; }
+  .filter-btn:hover { background:#f0f0f0 }
   .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
   .btn:hover { background:#f0f0f0 }
   .grid { display:grid; grid-template-columns: 1fr; gap: var(--gap); }
@@ -88,7 +90,7 @@
 	  <br>2. Click on a row. All the fixtures returned will be shown on a map and as a table underneath the map, with the date, home and away teams, and stadium.
 	  Points are colour-coded based on their date - fixtures that share a date have the same colour.
 	  By hovering over a row, the corresponding fixture on the map will light up. Click on a row to zoom to that fixture's location (based on the stadium).</br>
-	  <br>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest overall distance between them.
+	  <br>3. Obviously on some dates there are multiple fixtures. By clicking Filter, the app filters to all the fixtures that maintain the streak but have the lowest distance to the next fixture.
 	  Clicking Show Arrows after clicking Filter adds lines between these fixtures up in order of date.</br>
 	  <br>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</br>
 	  <p>
@@ -221,7 +223,7 @@
 <div class="grid">
   <div class="card">
     <div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
-      <button id="filter-btn" class="btn">Filter</button>
+      <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
       <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
     </div>
     <div class="map-container"></div>
