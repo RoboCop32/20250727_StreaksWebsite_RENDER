@@ -456,7 +456,7 @@ table {
 			const orderLabels = orderMap[id].join(","); // e.g. "2,6"
 
 			// 👉 random angle, fixed radius around the point
-			const radiusDeg = 0.08; // distance in degrees (~small visual offset) – tweak this value
+			const radiusDeg = 0.02; // distance in degrees (~small visual offset) – tweak this value
 			const angle = Math.random() * 2 * Math.PI;
 
 			// correct longitude offset for current latitude
@@ -503,7 +503,7 @@ table {
 		welcome.style.display = "none";
 	  } else {
 		welcome.removeAttribute("hidden");
-		welcome.style.display = "flex";
+		welcome.style.display = "block"; 
 	  }
 	});
 
@@ -614,6 +614,7 @@ table {
 		});
     });
 	
+	let legendVisible = true;
 	const toggleLegendBtn = document.getElementById("toggleLegendBtn");
 	if (toggleLegendBtn) {
 	  toggleLegendBtn.addEventListener("click", () => {
