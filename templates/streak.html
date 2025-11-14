@@ -407,7 +407,7 @@ table {
 		
 		// ✅ Add legend (date → color)
 		if (!showFiltered) {
-			cconst legend = L.control({ position: "bottomright" });
+			const legend = L.control({ position: "bottomright" });
 			legend.onAdd = function () {
 			  const div = L.DomUtil.create("div", "info legend");
 			  div.innerHTML = "<h4>Fixture Dates</h4>";
