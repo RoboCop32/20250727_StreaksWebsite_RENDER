@@ -456,7 +456,7 @@ table {
 			const orderLabels = orderMap[id].join(","); // e.g. "2,6"
 
 			// 👉 random angle, fixed radius around the point
-			const radiusDeg = 0.02; // distance in degrees (~small visual offset) – tweak this value
+			const radiusDeg = 0.01; // distance in degrees (~small visual offset) – tweak this value
 			const angle = Math.random() * 2 * Math.PI;
 
 			// correct longitude offset for current latitude
