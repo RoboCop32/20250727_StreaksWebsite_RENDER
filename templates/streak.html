@@ -13,7 +13,7 @@
   header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
   .filter-btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#000; background:#59A6FF; font-size: 15px; font-weight: bold; }
   .filter-btn:hover { background:#f0f0f0 }
-  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa; font-weight: bold; }
+  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa}
   .btn:hover { background:#f0f0f0 }
   .grid { display:grid; grid-template-columns: 1fr; gap: var(--gap); }
   .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff }
@@ -39,10 +39,6 @@
   overflow-x: hidden;
 }
 
-/* keep content neatly centred with safe margins */
-#welcome-screen > * {
-  max-width: 900px;
-}
 
 /* slightly more breathing room on tablets/desktop */
 @media (min-width: 768px) {
@@ -173,6 +169,8 @@ table {
 	  <br>4. If you want to begin again, click Show Table at the top to click on another streak, or type in another Day Gap value at the top.</br>
 	  <p>
 	  </p>
+	  <p>Please note: fixtures for a gameweek far in advance are often all put on the same day e.g. a Sunday. It is only a few months in advance of that gameweek that the fixtures get dispersed between Fridays, Saturdays, Mondays etc. based on TV broadcasting. This is why streaks usually only occur in the next few months.</p>
+	  <p>Cup games and european fixtures aren't taken into account, nor cross-border streaks. Perhaps in the future!</p>
 	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
 	  <p>Markers are color-coded by fixture date; see the legend in the bottom-right corner.</p>
 	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
@@ -289,7 +287,7 @@ table {
     <div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
       <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
       <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
-	  <button id="toggle-legend-btn" class="btn">Hide Legend</button>
+	  <button id="toggleLegendBtn" class="btn">Hide Legend</button>
     </div>
     <div class="map-container"></div>
   </div>
@@ -452,29 +450,36 @@ table {
 				fillColor: dateColors[row.date],
 				fillOpacity: 0.9
 			}).addTo(map).bindPopup(popupText);
-			
-			if (showFiltered) {
+					
+		if (showFiltered) {
 
-				const orderLabels = orderMap[id].join(","); // e.g. "2,6"
-				
-				// Apply jitter
-				const jitterAmount = 0.00; //this is what we adjust
-				const jitter = () => (Math.random() - 0.5) * 2 * jitterAmount;
-				
-				const jitteredLat = lat + jitter();
-				const jitteredLon = lon + jitter();
-				
-				L.marker([jitteredLat, jitteredLon], {
-					icon: L.divIcon({
-						className: "order-label",
-						html: `<b style="color:white;font-size:18.5px;text-shadow:-1px -1px 2px black,1px -1px 2px black,-1px 1px 2px black,1px 1px 2px black;">
-								  ${orderLabels}
-							   </b>`,
-						iconSize: [30, 20],
-						iconAnchor: [15, -10]
-					})
-				}).addTo(map);
-			}
+			const orderLabels = orderMap[id].join(","); // e.g. "2,6"
+
+			// 👉 random angle, fixed radius around the point
+			const radiusDeg = 0.08; // distance in degrees (~small visual offset) – tweak this value
+			const angle = Math.random() * 2 * Math.PI;
+
+			// correct longitude offset for current latitude
+			const latRad = lat * Math.PI / 180;
+			const offsetLat = radiusDeg * Math.sin(angle);
+			const offsetLon = (radiusDeg * Math.cos(angle)) / Math.cos(latRad);
+
+			const labelLat = lat + offsetLat;
+			const labelLon = lon + offsetLon;
+
+			L.marker([labelLat, labelLon], {
+				icon: L.divIcon({
+					className: "order-label",
+					html: `<b style="color:white;font-size:18.5px;
+									text-shadow:-1px -1px 2px black,1px -1px 2px black,
+												-1px 1px 2px black,1px 1px 2px black;">
+							  ${orderLabels}
+						   </b>`,
+					iconSize: [30, 20],
+					iconAnchor: [15, -10]
+				})
+			}).addTo(map);
+		}
 
 			markers[id] = marker;
 			points.push([lat, lon]);
@@ -608,6 +613,22 @@ table {
 			}
 		});
     });
+	
+	const toggleLegendBtn = document.getElementById("toggleLegendBtn");
+	if (toggleLegendBtn) {
+	  toggleLegendBtn.addEventListener("click", () => {
+		if (!window._legendCtrl) return;
+		if (legendVisible) {
+		  map.removeControl(window._legendCtrl);
+		  legendVisible = false;
+		  toggleLegendBtn.textContent = "Show Legend";
+		} else {
+		  window._legendCtrl.addTo(map);
+		  legendVisible = true;
+		  toggleLegendBtn.textContent = "Hide Legend";
+		}
+	  });
+	}
 	
 	//show/hide Table
 	const toggleTableBtn = document.getElementById("toggle-table-btn");
