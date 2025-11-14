@@ -88,12 +88,13 @@
 	
 	#welcome-screen.hidden { opacity:0; pointer-events:none; }
   /* Filters: 3 thin columns in a row */
-  .filters-row {
+  .filters-row { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+  /*.filters-row {
     display:grid;
     grid-template-columns: repeat(3, minmax(160px, 1fr));
     gap: var(--gap);
     margin-bottom: var(--gap);
-  }
+  }*/
   .filter { display:flex; flex-direction:column; gap:6px; }
   label { font-weight:600; font-size: 14px; }
   select[multiple] {
@@ -312,7 +313,7 @@ table {
 		welcome.style.display = "none";
 	  } else {
 		welcome.removeAttribute("hidden");
-		welcome.style.display = "flex";
+		welcome.style.display = "block";
 	  }
 	});
   function currentFilters(){
