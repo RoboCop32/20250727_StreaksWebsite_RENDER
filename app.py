@@ -53,9 +53,9 @@ engine1 = create_engine(db_url)
 #engine1 = create_engine(signin_info)
 
 
-main_table_name = "fixtures_stadium_combined_20251209"
+main_table_name = "fixtures_stadium_combined_20260115"
 
-STADIUMS_TABLE = "stadiums_202511121_backup"  # matches your screenshot
+STADIUMS_TABLE = "df_20260115_main_stadiums_table"  # matches your screenshot
 
 show_lines = True  # Default: Show arrows
 
