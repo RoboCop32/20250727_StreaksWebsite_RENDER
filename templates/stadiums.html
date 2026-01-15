@@ -378,7 +378,7 @@ table {
         ${m.team_name} — <small>${m.country}</small><br/>
         <small>Lon ${m.lon}, Lat ${m.lat}</small>
       `;
-      const cm = L.circleMarker([m.lat, m.lon], {
+      const cm = L.circleMarker([m.lon, m.lat], {
 		  radius: 5,
 		  color: '#FF0000',      // outline color
 		  fillColor: '#FF6666',  // inner fill color

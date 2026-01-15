@@ -553,7 +553,7 @@ def get_streak(streak_id):
     
     print(streak_id)
 
-    full_matches_table = "FIXTURES_STADIUM_JOIN_2425_20250222"
+    full_matches_table = "fixtures_stadium_combined_20260115"
     
     #remember we defined df_data before
     df_data = pd.DataFrame(app.config["df_data"]) 
