@@ -15,7 +15,8 @@
     .buttons { display:flex; flex-wrap:wrap; gap: var(--gap); margin-top: 8px; }
     .btn { display:inline-block; padding: 12px 16px; border:1px solid #ddd; border-radius:12px; background:#fafafa; color:#111; text-decoration:none; font-weight:600; }
     .btn:hover { background:#f0f0f0 }
-	.disclaimer { margin-top: 14px; color: #333; opacity: .8; font-size: 11px; }
+	.date { margin-top: 8px; color: #333; opacity: .8; }
+	.disclaimer { margin-top: 14px; color: #333; opacity: .8; font-size: 10px; }
   </style>
 </head>
 <body>
@@ -24,11 +25,11 @@
       <h1>Football Mapped (Beta)<img src="{{ url_for('static', filename='football.jpg') }}" alt="Football" style="width:48px;height:48px;object-fit:contain;"></h1>
       <p>
         Explore stadiums and fixtures on an interactive map, and analyse country-by-country streaks of consecutive fixtures.
-        Use the buttons below to jump straight in.
+        
       </p>
       <div class="buttons">
-        <a class="btn" href="/stadiums">Stadiums</a>
-        <a class="btn" href="/filters">Fixtures</a>
+        <a class="btn" href="/stadiums">Explore Stadiums</a>
+        <a class="btn" href="/filters">Explore Fixtures</a>
         <a class="btn" href="/streak">Find Consecutive Fixtures (Streaks)</a>
       </div>
 	   <p class="date">Fixtures last generated: Jan 15th 2026 </p>
