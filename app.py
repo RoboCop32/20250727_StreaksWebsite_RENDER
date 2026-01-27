@@ -512,7 +512,7 @@ def api_stadiums_search():
         "country":     r["country"],
         "stadium_name":r["stadium_name"],
         "capacity":         r["capacity"],
-        "google_maps":         r["lat"],
+        "google_maps":         r["google_maps"],
     } for r in rows]
 
     # markers for Leaflet
