@@ -42,7 +42,8 @@
   overflow-x: hidden;
 }
 
-
+.filtered-data-table {margin-bottom: 10px;
+  margin-top: 10px;}
 /* slightly more breathing room on tablets/desktop */
 @media (min-width: 768px) {
   #welcome-screen {
@@ -297,18 +298,20 @@ table {
     <div class="map-container"></div>
 	</div>
   </div>
-  <div class="card">
-	<div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
+  	<div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
       <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
       <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
 	  <button id="toggleLegendBtn" class="btn">Hide Legend</button>
+	  </div>
+  <div class="card">
+
   <div class="card" id="filtered-table-section">
     <h3 style="margin-top:0;">Fixtures</h3>
     <table id="filtered-data-table">
       <thead>
         <tr>
           <th>Date of Fixture</th>
-		  <th>Time</th>
+		  
           <th>Home Team</th>
           <th>Away Team</th>
           <th>Fixture Stadium</th>
@@ -550,7 +553,7 @@ table {
                         tr.dataset.id = row.unique_id;
                         tr.dataset.lat = row.latitude;
                         tr.dataset.lon = row.longitude;
-                        tr.innerHTML = `<td>${row.date_and_time}</td><td>${row.time || ''}</td> <td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
+                        tr.innerHTML = `<td>${row.date_and_time}</td> <td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
                         tbody.appendChild(tr);
 						
 						
