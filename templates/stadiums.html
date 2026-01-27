@@ -150,8 +150,8 @@ table {
 <div id="welcome-screen" hidden>
 	  <h1>Stadiums - Mapped</h1>
 	  
-	  <p>Stadiums locations were geocoded based on the team name and country, using the nominatim API. Where the stadium was not found, the name of the town was geocoded. Where no information was found, nothing was geocoded - these will have to be added in manually at a later date (when I can be bothered!). </p>
-	  <p>Out of 1013 teams, 749 were geocoded to the stadium, 219 were geocoded to the town, and 45 were not geocoded. However those that were geocoded can sometimes be wrong, e.g. if a stadium has an address name e.g. Vicarage Road (Watford). A long way of saying- not all of this is correct; manual checks are needed! If you see any that are wrong feel free to email footballmapped@proton.me.</p>
+	  <p>Stadiums locations were geocoded using a custom geocode program.</p>
+	  <p>There are 973 teams from 24 countries in the database,and the program managed to geocode 948 of their stadiums. However even those that were geocoded can sometimes be wrong, e.g. if a stadium has an address name e.g. Vicarage Road (Watford). A long way of saying- not all of this is correct; manual checks are needed! If you see any that are wrong feel free to email footballmapped@proton.me.</p>
 	  <p>You can hover over any row to highlight its stadium on the map, or click a row to zoom in and open its popup.</p>
 	  <p>Click the <strong>“i”</strong> button any time to revisit this page.</p>
 	  <button id="begin-btn" onclick="hideWelcome()" >BEGIN</button>
@@ -507,7 +507,7 @@ table {
     renderTable(rows);
     ensureMap();
     renderMarkers(markers);
-    setStatus(`${rows.length || 0} result${(rows.length||0)===1?'':'s'}. Scroll below map to see the Table of the results!`);
+    setStatus(`${rows.length || 0} result${(rows.length||0)===1?'':'s'}. Scroll below map to see the Table of the results! Click on Column Headings to sort!`);
   }
 
   // ---------- live behavior (like Fixtures) ----------
