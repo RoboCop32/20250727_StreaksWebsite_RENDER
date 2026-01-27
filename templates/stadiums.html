@@ -378,7 +378,7 @@ table {
       const popup = `
         <strong>Stadium: ${m.stadium_name}</strong><br/>
         Team: ${m.team_name} — <small>${m.country}</small><br/>
-        <small><a>${m.google_maps}</a></small>
+        <small><a>href=${m.google_maps}</a></small>
       `;
       const cm = L.circleMarker([m.lat, m.lon], { //this was the line i edited!!!!!!!!!!!! 20260115
 		  radius: 5,

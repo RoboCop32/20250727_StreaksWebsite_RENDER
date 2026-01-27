@@ -498,6 +498,8 @@ def api_stadiums_search():
           s.{q('Stadium Name')} AS stadium_name,
           s.{q('Stadium Capacity')} AS capacity,
           s.{q('google_maps')}  AS google_maps
+          s.{q('Longitude')}::float AS lon,
+          s.{q('Latitude')}::float  AS lat
         FROM {q(STADIUMS_TABLE)} s
         JOIN clubs c ON c.team_name = s.{q('Team Name')}
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
@@ -521,8 +523,12 @@ def api_stadiums_search():
         "country":     r["country"],
         "stadium_name":r["stadium_name"],
         "capacity":         r["capacity"],
-        "google_maps":         r["google_maps"]
-    } for r in rows] #if r["lat"] is not None and r["lon"] is not None]
+        "google_maps":         r["google_maps"],
+        "lon":         r["lon"],
+        "lat":         r["lat"],
+    } for r in rows if r["lat"] is not None and r["lon"] is not None]
+
+    
 
     return jsonify({"rows": out_rows, "markers": markers})
 

@@ -428,12 +428,12 @@ table {
 			  const div = L.DomUtil.create("div", "info legend");
 			  div.innerHTML = "<h4>Fixture Dates</h4>";
 			  uniqueDates.forEach(date => {
-				div.innerHTML += `
-				  <div>
-					<span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
-					(${date}) //this needs to still be date
-				  </div>`;
-			  });
+			  div.innerHTML += `
+				<div>
+				  <span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
+				  (${formatDate(date)})
+				</div>`;
+			});
 			  return div;
 			};
 			legend.addTo(map);
