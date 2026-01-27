@@ -521,8 +521,8 @@ def api_stadiums_search():
         "country":     r["country"],
         "stadium_name":r["stadium_name"],
         "capacity":         r["capacity"],
-        "google_maps":         r["google_maps"],
-    } for r in rows #if r["lat"] is not None and r["lon"] is not None]
+        "google_maps":         r["google_maps"]
+    } for r in rows] #if r["lat"] is not None and r["lon"] is not None]
 
     return jsonify({"rows": out_rows, "markers": markers})
 
