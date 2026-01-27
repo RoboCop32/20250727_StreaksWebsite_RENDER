@@ -22,7 +22,10 @@
   th, td { border-bottom:1px solid #eee; text-align:left; padding:8px; }
   th { background:#fafafa; position: sticky; top:0; }
   .row { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
-  .map-container { width:100%; height: 600px; display:none; border-radius:12px; }
+  .map-container { width:90%; height: 600px; display:none; border-radius:12px; }
+  .map-wrapper {
+  padding: 24px;
+}
   #controls { display:flex; gap:8px; }
   .btn-primary { background:#0a7; color:#fff; border-color:#0a7; }
   .btn-primary:hover { filter: brightness(0.95); }
@@ -288,8 +291,11 @@ table {
       <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
       <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
 	  <button id="toggleLegendBtn" class="btn">Hide Legend</button>
+	  <div>  Scroll down to see the Table of Fixtures generated!</div>
     </div>
+	<div class="map-wrapper">
     <div class="map-container"></div>
+	</div>
   </div>
 
   <div class="card" id="filtered-table-section">
@@ -336,7 +342,7 @@ table {
 		console.log(el)
         if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
 		console.log(el.style.display )
-		document.getElementById("toggle-table-btn").textContent = "▲ Show Table"
+		document.getElementById("toggle-table-btn").textContent = "▼ Show Table"
     }
 
     function haversine(lat1, lon1, lat2, lon2) {
