@@ -434,7 +434,7 @@ table {
 			  div.innerHTML += `
 				<div>
 				  <span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
-				  (${formatDate(date)})
+				  ${formatDate(date)}
 				</div>`;
 			});
 			  return div;
@@ -461,7 +461,7 @@ table {
 			const { latitude: lat, longitude: lon, unique_id: id } = row;
 			if (lat == null || lon == null) return;
 
-			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away}`;
+			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away} @ Stadium: ${row["Stadium Name]`;
 			if (options.withArrows && index === 0) popupText = "START: " + popupText;
 			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
 
@@ -660,7 +660,7 @@ table {
     toggleTableBtn.addEventListener("click", function () {
         if (tableBody.style.display === "none") {
             tableBody.style.display = "table-row-group"; // Show table
-            toggleTableBtn.textContent = "▼ Hide Table";
+            toggleTableBtn.textContent = "▲ Hide Table";
         } else {
             tableBody.style.display = "none"; // Hide table
             toggleTableBtn.textContent = "▼ Show Table";

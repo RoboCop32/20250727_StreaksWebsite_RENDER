@@ -47,7 +47,7 @@
   
   body {background: #59A6FF; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
   header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
-  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa }
+  .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa; margin-top: 12px; }
   .btn:hover { background:#f0f0f0 }
 
   .card { border:1px solid #e7e7e7; border-radius:12px; padding:12px; background:#fff; position:relative; }
@@ -105,6 +105,8 @@
     font-size: 14px; background:#fff;
   }
   .count-badge { font-weight:400; color:#666; margin-left:6px; }
+  
+  
 
   <--.two-col {
   display: grid;
@@ -117,7 +119,7 @@
     grid-template-columns: 1fr;
   }
 }
-  #map { width: 100%; min-height: 480px; border-radius: 10px; }
+  #map { width: 100%; min-height: 480px; border-radius: 10px; margin-bottom: 10px; margin-top: 10px;}
   #tableCard { max-height: 480px; overflow: auto; }
   /* Make table rows show a pointer cursor and subtle hover effect */
 	#tableCard table tbody tr {
@@ -238,8 +240,9 @@ table {
   <div class="actions">
     <button id="clearBtn" class="btn">Clear</button>
 
-<div>  Scroll down to see the Table of Stadiums generated!</div>    
+   
 <span id="status" aria-live="polite"></span>
+
   </div>
 
   <div class="two-col">
@@ -456,7 +459,7 @@ table {
     renderTable(rows);
     ensureMap();
     renderMarkers(markers);
-    setStatus(`${rows.length || 0} result${(rows.length||0)===1?'':'s'}`);
+    setStatus(`${rows.length || 0} result${(rows.length||0)===1?'':'s'}. Scroll down to see the Table of the results!`);
   }
 
   // ---------- live behavior (like Fixtures) ----------
