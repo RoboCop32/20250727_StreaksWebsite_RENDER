@@ -497,7 +497,7 @@ def api_stadiums_search():
           s.{q('Country')}      AS country,
           s.{q('Stadium Name')} AS stadium_name,
           s.{q('Stadium Capacity')} AS capacity,
-          s.{q('google_maps')}  AS google_maps
+          s.{q('google_maps')}  AS google_maps,
           s.{q('Longitude')}::float AS lon,
           s.{q('Latitude')}::float  AS lat
         FROM {q(STADIUMS_TABLE)} s

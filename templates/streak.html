@@ -423,6 +423,9 @@ table {
 		
 		// ✅ Add legend (date → color)
 		if (!showFiltered) {
+		
+			const formatDate = d =>
+			new Date(d).toISOString().slice(0, 10);
 			const legend = L.control({ position: "bottomright" });
 			legend.onAdd = function () {
 			  const div = L.DomUtil.create("div", "info legend");
