@@ -407,7 +407,7 @@ table {
     let originalData = [], filteredData = [], showFiltered = false, map, markers = {}, lines;
 
     function renderMap(data, options = {}) {
-		const container = document.querySelector(".map-container");
+		const container = document.querySelector("#map-container");
 		if (!container) return;
 		container.style.display = 'block';
 		container.innerHTML = '<div id="leaflet-map" style="height:100%;width:100%"></div>';
