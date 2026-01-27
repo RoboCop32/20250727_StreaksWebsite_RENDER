@@ -317,7 +317,19 @@ table {
     {% endif %}
 
     <script>
-	
+	function formatDisplayDate(date) {
+		  if (!date) return '';
+
+		  const d = new Date(date);
+
+		  return d.toLocaleDateString('en-GB', {
+			weekday: 'short',
+			day: '2-digit',
+			month: 'short',
+			year: 'numeric',
+		  });
+		}
+
 	function cleanDate(d) {
 		  const arr = d.split(" ");
 		  const sliced = arr.slice(1, -2); 
@@ -419,7 +431,7 @@ table {
 				div.innerHTML += `
 				  <div>
 					<span style="display:inline-block;width:15px;height:15px;background:${dateColors[date]};margin-right:5px;"></span>
-					${date}
+					formatDisplayDate(${date})
 				  </div>`;
 			  });
 			  return div;
@@ -446,7 +458,7 @@ table {
 			const { latitude: lat, longitude: lon, unique_id: id } = row;
 			if (lat == null || lon == null) return;
 
-			let popupText = `${row.date}: ${row.home} vs ${row.away}`;
+			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away}`;
 			if (options.withArrows && index === 0) popupText = "START: " + popupText;
 			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
 
@@ -531,7 +543,7 @@ table {
                         tr.dataset.id = row.unique_id;
                         tr.dataset.lat = row.latitude;
                         tr.dataset.lon = row.longitude;
-                        tr.innerHTML = `<td>${row.date}</td><td>${row.time || ''}</td> <td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
+                        tr.innerHTML = `<td>formatDisplayDate(${row.date})</td><td>${row.time || ''}</td> <td>${row.home}</td><td>${row.away}</td><td>${row["Stadium Name"]}</td>`;
                         tbody.appendChild(tr);
 						
 						
