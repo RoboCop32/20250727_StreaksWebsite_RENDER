@@ -106,6 +106,8 @@
 #filtered-table-section {
   max-height: 560px;
   overflow: auto;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 /* make tables horizontally scrollable on small screens */
@@ -287,17 +289,18 @@ table {
 
 <div class="grid">
   <div class="card">
-    <div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
-      <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
-      <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
-	  <button id="toggleLegendBtn" class="btn">Hide Legend</button>
-	  <div>  Scroll down to see the Table of Fixtures generated!</div>
+    <div>
+	  <div>  Scroll below map to see the Table of Fixtures generated!</div>
     </div>
 	<div class="map-wrapper">
     <div class="map-container"></div>
 	</div>
   </div>
-
+  <div class="card">
+	<div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
+      <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
+      <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
+	  <button id="toggleLegendBtn" class="btn">Hide Legend</button>
   <div class="card" id="filtered-table-section">
     <h3 style="margin-top:0;">Fixtures</h3>
     <table id="filtered-data-table">
