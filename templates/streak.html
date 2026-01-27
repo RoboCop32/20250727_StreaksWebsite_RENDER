@@ -291,15 +291,15 @@ table {
   </div>
 </div>
 
-
+<div class="grid">
   
-    <div>
-	  <div>  Scroll below map to see the Table of Fixtures generated!</div>
-    </div>
+    
+	 <div>  Scroll below map to see the Table of Fixtures generated!</div>
+    
 	
     <div class="map-container"></div>
 	
-  
+  </div>
   	<div id="controls" style="margin-bottom:10px; display:flex; gap:8px;">
       <button id="filter-btn" class="filter-btn">Filter for Shortest Route</button>
       <button id="toggle-lines-btn" class="btn" style="display:none">Show Arrows</button>
@@ -407,7 +407,7 @@ table {
     let originalData = [], filteredData = [], showFiltered = false, map, markers = {}, lines;
 
     function renderMap(data, options = {}) {
-		const container = document.querySelector("#map-container");
+		const container = document.querySelector(".map-container");
 		if (!container) return;
 		container.style.display = 'block';
 		container.innerHTML = '<div id="leaflet-map" style="height:100%;width:100%"></div>';
