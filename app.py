@@ -511,8 +511,8 @@ def api_stadiums_search():
         "team_name":   r["team_name"],
         "country":     r["country"],
         "stadium_name":r["stadium_name"],
-        "lon":         r["lon"],
-        "lat":         r["lat"],
+        "capacity":         r["capacity"],
+        "google_maps":         r["lat"],
     } for r in rows]
 
     # markers for Leaflet
@@ -520,9 +520,9 @@ def api_stadiums_search():
         "team_name":   r["team_name"],
         "country":     r["country"],
         "stadium_name":r["stadium_name"],
-        "lon":         r["lon"],
-        "lat":         r["lat"],
-    } for r in rows if r["lat"] is not None and r["lon"] is not None]
+        "capacity":         r["capacity"],
+        "google_maps":         r["google_maps"],
+    } for r in rows #if r["lat"] is not None and r["lon"] is not None]
 
     return jsonify({"rows": out_rows, "markers": markers})
 
