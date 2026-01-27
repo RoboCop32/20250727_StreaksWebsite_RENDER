@@ -464,7 +464,7 @@ table {
 			const { latitude: lat, longitude: lon, unique_id: id } = row;
 			if (lat == null || lon == null) return;
 
-			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away} @ Stadium: ${row["Stadium Name]`;
+			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away} @ Stadium: ${row["Stadium Name]}`;
 			if (options.withArrows && index === 0) popupText = "START: " + popupText;
 			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
 
