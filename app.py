@@ -496,8 +496,8 @@ def api_stadiums_search():
           s.{q('Team Name')}    AS team_name,
           s.{q('Country')}      AS country,
           s.{q('Stadium Name')} AS stadium_name,
-          s.{q('Stadium Capacity')}::float AS capacity,
-          s.{q('google_maps')}::float  AS google_maps
+          s.{q('Stadium Capacity')} AS capacity,
+          s.{q('google_maps')}  AS google_maps
         FROM {q(STADIUMS_TABLE)} s
         JOIN clubs c ON c.team_name = s.{q('Team Name')}
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
