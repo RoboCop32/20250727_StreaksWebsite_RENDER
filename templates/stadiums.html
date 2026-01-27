@@ -44,7 +44,13 @@
 	transform: translateY(-2px);
 	}
   :root { --gap: 14px; }
-  
+  th {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sort-asc::after { content: " ▲"; }
+th.sort-desc::after { content: " ▼"; }
   body {background: #59A6FF; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 18px; }
   header { display:flex; align-items:center; gap: 12px; margin-bottom: 12px; }
   .btn { padding: 8px 12px; border:1px solid #ddd; border-radius:10px; text-decoration:none; color:#111; background:#fafafa; margin-top: 12px; }
@@ -255,10 +261,10 @@ table {
     <table>
       <thead>
         <tr>
-          <th>Team Name</th>
-          <th>Country</th>
-          <th>Stadium Name</th>
-          <th>Capacity</th>
+          <th data-type="text">Team Name</th>
+          <th data-type="text">Country</th>
+          <th data-type="text">Stadium Name</th>
+          <th data-type="number">Capacity</th>
           <th>Google Maps</th>
         </tr>
       </thead>
@@ -272,6 +278,48 @@ table {
   const preload = {{ preload|tojson|safe }};
 
   // ---------- helpers ----------
+  (function enableTableSorting(){
+  const table = document.querySelector("#tableCard table");
+  const thead = table.querySelector("thead");
+  const tbody = table.querySelector("tbody");
+  let sortCol = -1;
+  let sortDir = 1;
+
+  thead.querySelectorAll("th").forEach((th, index) => {
+    th.addEventListener("click", () => {
+      const type = th.dataset.type || "text";
+
+      // toggle direction
+      sortDir = (sortCol === index) ? -sortDir : 1;
+      sortCol = index;
+
+      // clear arrows
+      thead.querySelectorAll("th").forEach(h =>
+        h.classList.remove("sort-asc", "sort-desc")
+      );
+      th.classList.add(sortDir === 1 ? "sort-asc" : "sort-desc");
+
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+
+      rows.sort((a, b) => {
+        let A = a.children[index].innerText.trim();
+        let B = b.children[index].innerText.trim();
+
+        if (type === "number") {
+          A = parseInt(A.replace(/,/g, "")) || 0;
+          B = parseInt(B.replace(/,/g, "")) || 0;
+          return (A - B) * sortDir;
+        }
+
+        return A.localeCompare(B, undefined, { numeric: true, sensitivity: "base" }) * sortDir;
+      });
+
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+})();
+
+
   function optHtml(arr){ return ['<option value="">(any)</option>'].concat((arr||[]).map(v=>`<option>${v}</option>`)).join(''); }
   function selVals(id){ return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value).filter(Boolean); }
   function fill(id, arr){
