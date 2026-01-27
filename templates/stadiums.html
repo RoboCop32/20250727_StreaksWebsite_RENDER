@@ -106,11 +106,11 @@
   }
   .count-badge { font-weight:400; color:#666; margin-left:6px; }
 
-  .two-col {
+  <--.two-col {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
   gap: var(--gap);
-}
+}--!>
 
 @media (max-width: 1100px) {
   .two-col {
@@ -244,7 +244,7 @@ table {
     <div id="mapCard" class="card">
       <div id="map"></div>
     </div>
-    <div id="tableCard" class="card">
+<div id="tableCard" class="card">
 
   <div id="tableCard" class="card">
     <table>
@@ -253,8 +253,8 @@ table {
           <th>Team Name</th>
           <th>Country</th>
           <th>Stadium Name</th>
-          <th>Longitude</th>
-          <th>Latitude</th>
+          <th>Capacity</th>
+          <th>Google Maps</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -374,9 +374,9 @@ table {
     const bounds = [];
     markers.forEach(m => {
       const popup = `
-        <strong>${m.stadium_name}</strong><br/>
-        ${m.team_name} — <small>${m.country}</small><br/>
-        <small>Lon ${m.lon}, Lat ${m.lat}</small>
+        <strong>Stadium: ${m.stadium_name}</strong><br/>
+        Team: ${m.team_name} — <small>${m.country}</small><br/>
+        <small><a>${m.google_maps}</a></small>
       `;
       const cm = L.circleMarker([m.lat, m.lon], { //this was the line i edited!!!!!!!!!!!! 20260115
 		  radius: 5,
@@ -409,8 +409,8 @@ table {
         <td>${r.team_name || ''}</td>
         <td>${r.country || ''}</td>
         <td>${r.stadium_name || ''}</td>
-        <td>${r.lon ?? ''}</td>
-        <td>${r.lat ?? ''}</td>
+        <td>${r.capacity || ''}</td>
+        <td>${r.google_maps || ''}</td>
       </tr>
     `).join('');
 	// Hover → highlight
