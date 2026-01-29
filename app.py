@@ -60,7 +60,7 @@ STADIUMS_TABLE = "df_20260115_main_stadiums_table"  # matches your screenshot
 show_lines = True  # Default: Show arrows
 
 # ===== NEW: config for filter page =====
-DATA_TABLE = STADIUMS_TABLE#main_table_name  # uses your existing main table
+DATA_TABLE = main_table_name  # uses your existing main table
 FILTER_COLUMNS = ["country", "league", "home", "away"]  # add more if you want (e.g. "Team Name")
 RESULT_COLUMNS = [
     "unique_id", "date", "time", "league", "home", "away", "country",
