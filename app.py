@@ -60,7 +60,7 @@ STADIUMS_TABLE = "df_20260115_main_stadiums_table"  # matches your screenshot
 show_lines = True  # Default: Show arrows
 
 # ===== NEW: config for filter page =====
-DATA_TABLE = main_table_name  # uses your existing main table
+DATA_TABLE = STADIUMS_TABLE#main_table_name  # uses your existing main table
 FILTER_COLUMNS = ["country", "league", "home", "away"]  # add more if you want (e.g. "Team Name")
 RESULT_COLUMNS = [
     "unique_id", "date", "time", "league", "home", "away", "country",
@@ -508,25 +508,25 @@ def api_stadiums_search():
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
 
-    # table rows
-    out_rows = [{
-        "team_name":   r["team_name"],
-        "country":     r["country"],
-        "stadium_name":r["stadium_name"],
-        "capacity":         r["capacity"],
-        "google_maps":         r["google_maps"],
-    } for r in rows]
+        # table rows
+        out_rows = [{
+            "team_name":   r["team_name"],
+            "country":     r["country"],
+            "stadium_name":r["stadium_name"],
+            "capacity":         r["capacity"],
+            "google_maps":         r["google_maps"],
+        } for r in rows]
 
-    # markers for Leaflet
-    markers = [{
-        "team_name":   r["team_name"],
-        "country":     r["country"],
-        "stadium_name":r["stadium_name"],
-        "capacity":         r["capacity"],
-        "google_maps":         r["google_maps"],
-        "lon":         r["lon"],
-        "lat":         r["lat"],
-    } for r in rows if r["lat"] is not None and r["lon"] is not None]
+        # markers for Leaflet
+        markers = [{
+            "team_name":   r["team_name"],
+            "country":     r["country"],
+            "stadium_name":r["stadium_name"],
+            "capacity":         r["capacity"],
+            "google_maps":         r["google_maps"],
+            "lon":         r["lon"],
+            "lat":         r["lat"],
+        } for r in rows if r["lat"] is not None and r["lon"] is not None]
 
     
 
