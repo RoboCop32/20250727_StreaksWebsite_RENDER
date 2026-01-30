@@ -504,6 +504,8 @@ def api_stadiums_search():
         JOIN clubs c ON c.team_name = s.{q('Team Name')}
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
     """)
+    
+    print(sql)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
