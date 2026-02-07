@@ -235,7 +235,7 @@ def find_optimum_stadiums(gdf):
     # Calculate the shortest route
     
     names_list = [name for _, name in route]
-    print(route,total_distance,names_list)
+    #print(route,total_distance,names_list)
     
 def find_optimum_stadiums(gdf):
 
@@ -291,7 +291,7 @@ def find_optimum_stadiums(gdf):
     # Calculate the shortest route
     
     names_list = [name for _, name in route]
-    print(route,total_distance,names_list)
+    #print(route,total_distance,names_list)
     return route,total_distance,names_list
 
 
@@ -445,7 +445,7 @@ def streak():
     
     if request.method == "POST": #so if user submits the form (POST request) HTTP Methods: POST is used to send data to a server to create/update a resource. not the same as GET
         streak_gap = request.form.get("streak_gap")
-        print(streak_gap)
+        #print(streak_gap)
         
         app.config['streak_gap'] = streak_gap
         
@@ -506,7 +506,7 @@ def api_stadiums_search():
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
     """)
     
-    print(sql)
+    #print(sql)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
@@ -592,7 +592,7 @@ def get_streak(streak_id):
     df_data_dict=gdf.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
     filtered_data_dict = gdf_filtered.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
     
-    print(type(df_data_dict),'444444',df_data_dict)
+    #print(type(df_data_dict),'444444',df_data_dict)
     map_html = plot_streak_map(gdf, 0.005)
     
     
@@ -614,7 +614,7 @@ def filter_streak():
     if "gdf_filtered" in app.config:
         gdf_filtered = app.config["gdf_filtered"]
         
-        print("HELLO",gdf_filtered.columns)
+        #print("HELLO",gdf_filtered.columns)
         
         # Convert to JSON format for the frontend
         map_html = plot_streak_map(gdf_filtered, 0.005,False)
@@ -647,7 +647,7 @@ def toggle_map_and_table():
         df_data_dropped=df_data.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")#.replace({np.nan: None}).to_dict(orient="records")
         app.config["show_filtered"] = True
         
-        print(df_data.columns,"34343434")
+        #print(df_data.columns,"34343434")
         result = {
         'map_html': str(map_html),
         'df_data': df_data_dropped,
@@ -674,7 +674,7 @@ def toggle_lines(action):
     global show_lines
     
     show_lines = action == "show"
-    print(action,"sdfhjfsdjhfsdhjsfdj") #cant do console ofc
+    #print(action,"sdfhjfsdjhfsdhjsfdj") #cant do console ofc
     df_data = app.config["gdf_filtered"]
     if action == 'show':
     
@@ -688,7 +688,7 @@ def toggle_lines(action):
 def zoom(lat,lon):
     #data = request.get_json()
     
-    print("WHWHWHW",lat,lon)
+    #print("WHWHWHW",lat,lon)
     gdf = app.config["gdf"]
     # Call your map function centered on clicked point
     m = plot_streak_map(gdf, lat=lat, long=lon,myzoom=0.5)
@@ -709,7 +709,7 @@ def get_filtered_route():
     #don't do ipalce = True because this returns NAN. and also, json can't handle nulls, so we need to replace them with None
     df_data_dict=gdf_filtered.drop(columns=['geometry']).replace({np.nan: None}).to_dict(orient="records")
     
-    print(type(df_data_dict),'3333',df_data_dict)
+    #print(type(df_data_dict),'3333',df_data_dict)
     map_html = plot_streak_map(gdf_filtered, 0.005)
     result = {
         'map_html': str(map_html),
