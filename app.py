@@ -37,13 +37,34 @@ import branca
 import numpy as np
 from scipy.spatial.distance import cdist
 
+from datetime import datetime
+
+from flask_talisman import Talisman
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(get_remote_address, app=app, default_limits=["200 per hour"])
+
+
+Talisman(app, content_security_policy={
+  "default-src": "'self'",
+  "script-src": "'self' https://unpkg.com",
+  "style-src": "'self' https://unpkg.com 'unsafe-inline'",
+  "img-src": "'self' data: https:",
+})
+
 app = Flask(__name__)
 
 #secure session key
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ["FLASK_SECRET_KEY"]
 
 # Database connection details - for RENDER
-local_db = "postgresql://myapp_db_x30v_user:7qClIk24pcyyepGQpvmOg9HV8pVmQVKe@dpg-d2q4ket6ubrc73cv49l0-a/myapp_db_x30v"
+# app.py
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    raise RuntimeError("DATABASE_URL is not set")
+
+engine1 = create_engine(db_url, pool_pre_ping=True)
 
 # Use DATABASE_URL from Render if available. Comment below out if using locally...
 db_url = os.environ.get("DATABASE_URL", local_db)
@@ -68,7 +89,11 @@ RESULT_COLUMNS = [
 ]
 
 
-
+ALLOWED_COLS = set(RESULT_COLUMNS + ["country","league","home","away","Team Name","date","time"])
+def q_safe(col):
+    if col not in ALLOWED_COLS:
+        raise ValueError("Invalid column")
+    return q(col)
 def q(col: str) -> str:
     # safe double-quote for mixed‑case / spaces
     return '"' + col.replace('"', '""') + '"'
@@ -467,25 +492,66 @@ def streak():
 
     return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
+from flask import request, jsonify
+from werkzeug.exceptions import BadRequest
+import json
+
 @app.get("/api/stadiums/search")
 def api_stadiums_search():
-    import json
+    # 1) Parse filters JSON safely
+    filters_param = request.args.get("filters") or "{}"
     try:
-        raw = json.loads(request.args.get("filters") or "{}")
-    except Exception:
-        raw = {}
+        raw = json.loads(filters_param)
+    except json.JSONDecodeError:
+        # Better than silently ignoring: the frontend/dev can see what's wrong
+        raise BadRequest("Invalid JSON in 'filters' query parameter")
 
-    # We still let Country/League/Club filter via the combined fixtures table:
+    if raw is None:
+        raw = {}
+    if not isinstance(raw, dict):
+        raise BadRequest("'filters' must be a JSON object")
+
+    # 2) Only allow specific keys (prevents unexpected columns / logic)
+    ALLOWED_KEYS = {"country", "league", "club"}
+    unknown = set(raw.keys()) - ALLOWED_KEYS
+    if unknown:
+        raise BadRequest(f"Unknown filter key(s): {', '.join(sorted(unknown))}")
+
+    # 3) Normalise values: allow string OR list-of-strings
+    def normalise_list(val, key_name: str):
+        if val is None:
+            return []
+        if isinstance(val, str):
+            items = [val]
+        elif isinstance(val, list):
+            items = val
+        else:
+            raise BadRequest(f"Filter '{key_name}' must be a string or a list of strings")
+
+        # Enforce size limit to avoid huge IN (...) lists
+        if len(items) > 50:
+            raise BadRequest(f"Too many values for '{key_name}' (max 50)")
+
+        cleaned = []
+        for x in items:
+            if not isinstance(x, str):
+                raise BadRequest(f"Filter '{key_name}' must contain only strings")
+            s = x.strip()
+            if s:  # drop empty
+                cleaned.append(s)
+
+        return cleaned
+
+    # Keep your “logical” names used by _build_where_and_params
     filters = {
-        "country": (raw.get("country") or []),   # logical -> "country" in combined table
-        "league":  (raw.get("league")  or []),   # logical -> "league" in combined table
-        "club":    (raw.get("club")    or []),   # logical -> "Team Name" via key_to_col
+        "country": normalise_list(raw.get("country"), "country"),
+        "league":  normalise_list(raw.get("league"),  "league"),
+        "club":    normalise_list(raw.get("club"),    "club"),  # maps to "Team Name" inside your builder
     }
 
     where_sql, params = _build_where_and_params(filters)
 
-    # 1) Find clubs that match filters in the combined table
-    # 2) Join to stadiums table for coordinates + stadium attributes
+    # 4) Query (same logic as yours)
     sql = text(f"""
         WITH clubs AS (
           SELECT DISTINCT {q('Team Name')} AS team_name
@@ -502,56 +568,31 @@ def api_stadiums_search():
           s.{q('Latitude')}::float  AS lat
         FROM {q(STADIUMS_TABLE)} s
         JOIN clubs c ON c.team_name = s.{q('Team Name')}
-  
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
     """)
-    
-    #print(sql)
 
     with engine1.connect() as conn:
         rows = conn.execute(sql, params).mappings().all()
 
-        # table rows
-        out_rows = [{
-            "team_name":   r["team_name"],
-            "country":     r["country"],
-            "stadium_name":r["stadium_name"],
-            "capacity":         r["capacity"],
-            "google_maps":         r["google_maps"],
-        } for r in rows]
+    out_rows = [{
+        "team_name":    r["team_name"],
+        "country":      r["country"],
+        "stadium_name": r["stadium_name"],
+        "capacity":     r["capacity"],
+        "google_maps":  r["google_maps"],
+    } for r in rows]
 
-        # markers for Leaflet
-        markers = [{
-            "team_name":   r["team_name"],
-            "country":     r["country"],
-            "stadium_name":r["stadium_name"],
-            "capacity":         r["capacity"],
-            "google_maps":         r["google_maps"],
-            "lon":         r["lon"],
-            "lat":         r["lat"],
-        } for r in rows if r["lat"] is not None and r["lon"] is not None]
-
-    
+    markers = [{
+        "team_name":    r["team_name"],
+        "country":      r["country"],
+        "stadium_name": r["stadium_name"],
+        "capacity":     r["capacity"],
+        "google_maps":  r["google_maps"],
+        "lon":          r["lon"],
+        "lat":          r["lat"],
+    } for r in rows if r["lat"] is not None and r["lon"] is not None]
 
     return jsonify({"rows": out_rows, "markers": markers})
-
-# --- homepage -> Stadiums ---
-@app.route("/stadiums", methods=["GET"]) #this is called a decorator apparently
-def stadiums_home():
-    with engine1.connect() as conn:
-        def distinct(col):
-            rows = conn.execute(text(
-                f'SELECT DISTINCT "{col}" AS v FROM "{DATA_TABLE}" '
-                f'WHERE "{col}" IS NOT NULL ORDER BY 1'
-            )).mappings().all()
-            return [r["v"] for r in rows if r["v"] is not None]
-
-        preload = {
-            "country": distinct("country"),
-            "league":  distinct("league"),
-            "club":    distinct("Team Name"),
-        }
-    return render_template("stadiums.html", preload=preload)
 
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
 def get_streak(streak_id):
@@ -698,10 +739,7 @@ def zoom(lat,lon):
     
     return Markup(m)
 
-def q(x):  # helper that quotes identifiers the same way you already do
-    return f'"{x}"'
-    
-    
+
 @app.route("/get_filtered_route")
 def get_filtered_route():
 
@@ -739,6 +777,12 @@ def filter_home():
     return render_template("filters.html", preload=preload)
 
 
+
+def parse_date(d):
+    if not d:
+        return None
+    return datetime.strptime(d, "%Y-%m-%d").date()
+    
 def _build_where_and_params(filters: dict):
     clauses = []
     params = {}
@@ -797,6 +841,18 @@ def api_options():
 
     try:
         filters = json.loads(request.args.get("filters") or "{}")
+        
+        ALLOWED_FILTERS = {
+            "country",
+            "league",
+            "home",
+            "away",
+            "Team Name"
+        }
+
+        for key in filters:
+            if key not in ALLOWED_FILTERS:
+                return jsonify({"error": "Invalid filter"}), 400
     except Exception:
         filters = {}
 
@@ -823,6 +879,7 @@ def api_options():
 
 
 @app.get("/api/search")
+@limiter.limit("30 per minute")
 def api_search():
     # ?filters=<json>&limit=2000
     import json
