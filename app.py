@@ -61,7 +61,7 @@ Talisman(app, content_security_policy={
 })
 
 #secure session key
-app.secret_key = os.environ["FLASK_SECRET_KEY"]
+app.secret_key = os.environ["FLASK_SECRET_KEY"] # ive added this 
 
 # Database connection details - for RENDER
 # app.py
@@ -89,7 +89,37 @@ RESULT_COLUMNS = [
 ]
 
 
+def _build_where_and_params(filters: dict):
+    clauses = []
+    params = {}
+    for key, val in filters.items():
+        if val in (None, "", []):
+            continue
 
+        if key in ("date_from", "date_to"):
+            if key == "date_from":
+                clauses.append(f"{q('date')} >= :date_from")
+                params["date_from"] = val
+            else:
+                clauses.append(f"{q('date')} <= :date_to")
+                params["date_to"] = val
+            continue
+
+        col = key_to_col(key)  # <-- NEW
+
+        # Multi-select → list: use ANY(CAST(:param AS text[]))
+        if isinstance(val, list):
+            cleaned = [v for v in val if v not in (None, "")]
+            if not cleaned:
+                continue
+            clauses.append(f"{q(col)} = ANY(CAST(:{key} AS TEXT[]))")
+            params[key] = cleaned
+        else:
+            clauses.append(f"{q(col)} = :{key}")
+            params[key] = val
+
+    where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return where_sql, params
 def q(col: str) -> str:
     # safe double-quote for mixed‑case / spaces
     return '"' + col.replace('"', '""') + '"'
@@ -658,37 +688,7 @@ def parse_date(d):
         return None
     return datetime.strptime(d, "%Y-%m-%d").date()
     
-def _build_where_and_params(filters: dict):
-    clauses = []
-    params = {}
-    for key, val in filters.items():
-        if val in (None, "", []):
-            continue
 
-        if key in ("date_from", "date_to"):
-            if key == "date_from":
-                clauses.append(f"{q('date')} >= :date_from")
-                params["date_from"] = val
-            else:
-                clauses.append(f"{q('date')} <= :date_to")
-                params["date_to"] = val
-            continue
-
-        col = key_to_col(key)  # <-- NEW
-
-        # Multi-select → list: use ANY(CAST(:param AS text[]))
-        if isinstance(val, list):
-            cleaned = [v for v in val if v not in (None, "")]
-            if not cleaned:
-                continue
-            clauses.append(f"{q(col)} = ANY(CAST(:{key} AS TEXT[]))")
-            params[key] = cleaned
-        else:
-            clauses.append(f"{q(col)} = :{key}")
-            params[key] = val
-
-    where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-    return where_sql, params
 
 
 @app.get("/api/options")
