@@ -500,9 +500,23 @@ def api_stadiums_search():
     return jsonify({"rows": out_rows, "markers": markers})
     
     
-@app.route("/stadiums", methods=["GET"])
-def stadiums_page():
-    return render_template("stadiums.html")
+# --- homepage -> Stadiums ---
+@app.route("/api/stadiums/se", methods=["GET"]) #this is called a decorator apparently
+def stadiums_home():
+    with engine1.connect() as conn:
+        def distinct(col):
+            rows = conn.execute(text(
+                f'SELECT DISTINCT "{col}" AS v FROM "{DATA_TABLE}" '
+                f'WHERE "{col}" IS NOT NULL ORDER BY 1'
+            )).mappings().all()
+            return [r["v"] for r in rows if r["v"] is not None]
+
+        preload = {
+            "country": distinct("country"),
+            "league":  distinct("league"),
+            "club":    distinct("Team Name"),
+        }
+    return render_template("stadiums.html", preload=preload)
 
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
 def get_streak(streak_id):
