@@ -427,21 +427,29 @@ table {
     }
     const bounds = [];
     markers.forEach(m => {
-      const popup = `
-        <strong>Stadium: ${m.stadium_name}</strong><br/>
-        Team: ${m.team_name} — <small>Capacity: ${m.capacity} Country: ${m.country} </small><br/>
-        <small>
-		  <a href="${m.google_maps}" target="_blank" rel="noopener noreferrer">
-			Go to Google Maps
-		  </a>
-		</small>
-      `;
-      const cm = L.circleMarker([m.lat, m.lon], { //this was the line i edited!!!!!!!!!!!! 20260115
-		  radius: 5,
-		  color: '#FF0000',      // outline color
-		  fillColor: '#FF6666',  // inner fill color
-		  fillOpacity: 0.8
-		});
+			const div = document.createElement("div");
+
+			const strong = document.createElement("strong");
+			strong.textContent = `Stadium: ${m.stadium_name ?? ""}`;
+			div.appendChild(strong);
+			div.appendChild(document.createElement("br"));
+
+			const line2 = document.createElement("div");
+			line2.textContent = `Team: ${m.team_name ?? ""} — Capacity: ${m.capacity ?? ""} Country: ${m.country ?? ""}`;
+			div.appendChild(line2);
+
+			if (m.google_maps) {
+			  const small = document.createElement("small");
+			  const a = document.createElement("a");
+			  a.textContent = "Go to Google Maps";
+			  a.href = m.google_maps;
+			  a.target = "_blank";
+			  a.rel = "noopener noreferrer";
+			  small.appendChild(a);
+			  div.appendChild(small);
+			}
+
+
       cm.bindPopup(popup).addTo(markersLayer);
       const k = keyFrom(m);
       markerIndex[k] = cm;

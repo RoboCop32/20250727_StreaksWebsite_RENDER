@@ -307,13 +307,22 @@ input[type="date"] {
 	function fill(id, arr){
 	  const el = document.getElementById(id);
 	  const prev = new Set(selVals(id));
-	  el.innerHTML = '<option value="">(any)</option>' + (arr||[]).map(v=>`<option>${v}</option>`).join('')
-	  
-	  Array.from(el.options).forEach(opt=>{
-		if (prev.has(opt.value)) opt.selected = true;
+	  el.innerHTML = "";
+
+	  const any = document.createElement("option");
+	  any.value = "";
+	  any.textContent = "(any)";
+	  el.appendChild(any);
+
+	  (arr || []).forEach(v => {
+		const opt = document.createElement("option");
+		opt.value = v;
+		opt.textContent = v;
+		if (prev.has(v)) opt.selected = true;
+		el.appendChild(opt);
 	  });
+
 	  refreshCountBadges();
-	  
 	}
   
 
@@ -380,6 +389,12 @@ async function refreshCascades(){
 	}
 	ids.forEach(id => document.getElementById(id).addEventListener("change", refreshCountBadges));
 
+
+	function tdText(val){
+	  const td = document.createElement("td");
+	  td.textContent = (val ?? "");
+	  return td;
+	}
   async function search(){
     const f = encodeURIComponent(JSON.stringify(currentFilters()));
     const r = await fetch(`/api/search?filters=${f}&limit=2000`);
@@ -410,26 +425,31 @@ async function refreshCascades(){
       tr.dataset.lat = item.Latitude ?? item.latitude ?? "";
       tr.dataset.lon = item.Longitude ?? item.longitude ?? "";
 		
-      tr.innerHTML = `
-        <td>${(item.date).slice(0, -12) || ""}</td>
-		<td>${item.time || ''}</td> 
-        <td>${item.league ?? ""}</td>
-        <td>${item.home ?? ""}</td>
-        <td>${item.away ?? ""}</td>
-        <td>${item.country ?? ""}</td>
-        <td>${item["Stadium Name"] ?? item["stadium name"] ?? ""}</td>`;
-      tb.appendChild(tr);
+      const dateStr = item.date ? String(item.date).slice(0, -12) : "";
+		const stadium = item["Stadium Name"] ?? item["stadium name"] ?? "";
+
+		tr.appendChild(tdText(dateStr));
+		tr.appendChild(tdText(item.time || ""));
+		tr.appendChild(tdText(item.league ?? ""));
+		tr.appendChild(tdText(item.home ?? ""));
+		tr.appendChild(tdText(item.away ?? ""));
+		tr.appendChild(tdText(item.country ?? ""));
+		tr.appendChild(tdText(stadium));
+
+		tb.appendChild(tr);
 
       // Make circleMarker like Streaks page (if coords exist)
       const lat = Number(item.Latitude ?? item.latitude);
       const lon = Number(item.Longitude ?? item.longitude);
       if (!isNaN(lat) && !isNaN(lon)){
         const color = dateColors[item.date] || "#999";
-        const marker = L.circleMarker([lat, lon], {
-          radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
-        }).bindPopup(
-          `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, -12)})`
-        );
+        const popupDiv = document.createElement("div");
+		popupDiv.textContent =
+		  `${item["Stadium Name"] ?? ""} — ${item.home ?? ""} vs ${item.away ?? ""} (${(item.date).slice(0, -12)})`;
+
+		const marker = L.circleMarker([lat, lon], {
+		  radius: 6, color: 'black', fillColor: color, fillOpacity: 0.9
+		}).bindPopup(popupDiv);
 
         markersLayer.addLayer(marker);
         markersById[item.unique_id] = marker;

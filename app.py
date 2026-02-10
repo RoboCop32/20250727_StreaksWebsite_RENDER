@@ -20,40 +20,45 @@
 
 When users submit input (e.g., through a form or URL), you must make sure it doesn’t contain malicious content — especially when used in SQL queries.
 '''
-
-from flask import Flask, render_template, request, Markup, jsonify, session, render_template_string, g
-
 import os
-import geopandas as gpd
-import folium
+import json
 import random
-import pandas as pd
-from sqlalchemy import create_engine, text
-from sqlalchemy.sql import text
-import sqlalchemy
-import psycopg2
-from shapely.wkt import loads  # Required for geometry conversion
-import branca
-import numpy as np
-from scipy.spatial.distance import cdist
-
 from datetime import datetime
 
+import numpy as np
+import pandas as pd
+import geopandas as gpd
+import folium
+import branca
+from shapely.wkt import loads
+from scipy.spatial.distance import cdist
+
+import psycopg2
+import sqlalchemy
+from sqlalchemy import create_engine, text
+
+from flask import (
+    Flask, render_template, request, jsonify,
+    session, render_template_string, g
+)
 from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from markupsafe import escape, Markup
+from werkzeug.exceptions import BadRequest
+
+
+app = Flask(__name__)
 
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per hour"])
 
 
 Talisman(app, content_security_policy={
   "default-src": "'self'",
-  "script-src": "'self' https://unpkg.com",
+  "script-src": "'self' https://unpkg.com 'unsafe-inline'",
   "style-src": "'self' https://unpkg.com 'unsafe-inline'",
   "img-src": "'self' data: https:",
 })
-
-app = Flask(__name__)
 
 #secure session key
 app.secret_key = os.environ["FLASK_SECRET_KEY"]
@@ -65,11 +70,6 @@ if not db_url:
     raise RuntimeError("DATABASE_URL is not set")
 
 engine1 = create_engine(db_url, pool_pre_ping=True)
-
-# Use DATABASE_URL from Render if available. Comment below out if using locally...
-db_url = os.environ.get("DATABASE_URL", local_db)
-engine1 = create_engine(db_url)
-
 
 #engine1 = create_engine(signin_info)
 
@@ -89,14 +89,16 @@ RESULT_COLUMNS = [
 ]
 
 
+
+def q(col: str) -> str:
+    # safe double-quote for mixed‑case / spaces
+    return '"' + col.replace('"', '""') + '"'
+    
 ALLOWED_COLS = set(RESULT_COLUMNS + ["country","league","home","away","Team Name","date","time"])
 def q_safe(col):
     if col not in ALLOWED_COLS:
         raise ValueError("Invalid column")
     return q(col)
-def q(col: str) -> str:
-    # safe double-quote for mixed‑case / spaces
-    return '"' + col.replace('"', '""') + '"'
 
 # --- add this helper near the top of app.py (after q())
 COLMAP = {
@@ -108,92 +110,18 @@ def key_to_col(key: str) -> str:
 
 def retrieve_sql_table(engine, table_name):
     query = text(f'SELECT * FROM "{table_name}"')
-    res = engine.execute(query)
+    with engine.connect() as conn:
+        res = conn.execute(query, params)
     return pd.DataFrame(res.fetchall(), columns=res.keys())
 
-def retrieve_streaks(my_table,day_interval,engine):
-    '''
-    This function we work out the streaks from the main view where we have joined fixtures and stadiums
-    '''
-    
-    streak_query = f'''WITH ranked_logins AS (
-        SELECT 
-            country,
-            unique_id,
-            CONCAT(home, ' vs ', away) AS fixtures,
-            date,
-            -- Calculate the gap between consecutive dates
-            LAG(date) OVER (PARTITION BY country ORDER BY date) AS previous_date
-        FROM {my_table}
-        WHERE country IS NOT NULL
-    ),
 
-    date_groups AS (
-        SELECT 
-            country,
-            unique_id,
-            fixtures,
-            date,
-            previous_date,
-            -- Assign a group based on whether the gap exceeds 2 days
-            CASE 
-                WHEN previous_date IS NULL OR date - previous_date > INTERVAL '{day_interval}' DAY THEN 1
-                ELSE 0
-            END AS new_streak
-        FROM ranked_logins
-    ),
-
-    streak_groups AS (
-        SELECT 
-            country,
-            unique_id,
-            fixtures,
-            date,
-            -- Use SUM() to accumulate streak group IDs
-            SUM(new_streak) OVER (PARTITION BY country ORDER BY date) AS streak_id
-        FROM date_groups
-    ),
-
-    intervals AS (
-        SELECT 
-            country,
-            string_agg(unique_id::character varying, ', ') AS all_ids,
-            MIN(date) AS interval_start_date,
-            MAX(date) AS interval_end_date
-        FROM streak_groups
-        GROUP BY country, streak_id
-        ORDER BY interval_start_date
-    )
-
-    SELECT 
-        country AS streak_country,
-        interval_start_date,
-        interval_end_date,
-        all_ids,
-        -- Calculate the length of the streak in days
-        CAST(EXTRACT(DAY FROM (interval_end_date - interval_start_date)) AS INTEGER) + 1 AS day_interval
-    FROM intervals
-    WHERE interval_end_date - interval_start_date >= INTERVAL '{day_interval}' DAY -- Filter streaks of 2 days or more
-    ORDER BY day_interval DESC;'''
-
-  
-    #here we execute our streaks query
-    
-    
-    resoverall = engine.execute(streak_query)
-    
-    df_result = pd.DataFrame(resoverall.fetchall())
-    
-    df_result["Streak_ID"] = df_result.index
-    
-    print("ran streak query")
-
-    return df_result
 
 
 def retrieve_streak(streak_id, engine, view_name):
     query = text(f'SELECT * FROM public."{view_name}" WHERE "Streak_ID" = :id')
-    result = engine.execute(query, {"id": streak_id})
+    with engine.connect() as conn:
+    
+        result = conn.execute(query, {"id": streak_id})
     df_result = pd.DataFrame(result.fetchall(), columns=result.keys())
     return None if df_result.empty else df_result
 
@@ -206,61 +134,7 @@ def convert_sql_to_gdf(df, geom_column):
     gdf["longitude"] = gdf.geometry.x
     return gdf
 
-def find_optimum_stadiums(gdf):
 
-    gdf = gdf[(gdf["geometry"] != None) & (gdf["geometry"] != 'None') & (gdf["geometry"] != "")].sort_values("date")
-
-    categories = gdf['date'].unique()
-    
-   # categories.sort() #sort the cateogires! hmm perhaps not u get an error
-    
-    groups = {cat: gdf[gdf['date'] == cat] for cat in categories}
-
-    names = {cat: group['unique_id'].tolist() for cat, group in groups.items()}  #so here we have a dict with date: list of fixtures
-
-    # Extract coordinates for distance calculations
-    coords = {cat: group.geometry.apply(lambda x: (x.x, x.y)).tolist() for cat, group in groups.items()} #and as abov but with coords
-
-    route = []
-    total_distance = 0
-
-    # Start at the first category
-    current_coords = np.array(coords[categories[0]])
-    current_names = names[categories[0]]
-    
-    #so we itrate through the date: coords dicitonaries, calculate distance tables for all of them, then get the minimum distnace
-    
-    for i in range(len(categories) - 1):
-        next_category = categories[i + 1] #so this does go to the next date
-        next_coords = np.array(coords[next_category])
-        next_names = names[next_category] #and this does get the next names
-
-        # Calculate pairwise distances
-        distances = cdist(current_coords, next_coords)
-
-        min_dist_idx = np.unravel_index(distances.argmin(), distances.shape)
-
-        # Append the chosen point's name to the route and update total distance
-        route.append((categories[i], current_names[min_dist_idx[0]]))
-        total_distance += distances[min_dist_idx]
-
-        #if we are at the last iteration (-2): apend the next category, and get the index in the Next names, using the End value of the min dist index [1]to get the destination from the next list
-        if i == (len(categories) - 2):
-            route.append((categories[i+1], next_names[min_dist_idx[1]])) # to get the last one too
-
-        # Update current_coords and current_names to the selected next point
-        current_coords = next_coords[[min_dist_idx[1]], :]
-        current_names = [next_names[min_dist_idx[1]]]
-
-        # Add the final point
-    #route.append((categories[-1], current_names[0])) # i removed this line. firstly it was in the for loop when it was supposed to be. secondly, doesnt accurately get the best distace in the last one
-
-        
-
-    # Calculate the shortest route
-    
-    names_list = [name for _, name in route]
-    #print(route,total_distance,names_list)
     
 def find_optimum_stadiums(gdf):
 
@@ -356,7 +230,10 @@ def retrieve_streaks(my_table, day_interval, engine):
         WHERE interval_end_date - interval_start_date >= INTERVAL :interval DAY
         ORDER BY day_interval DESC;
     """)
-    res = engine.execute(query, {"interval": str(day_interval)})
+    
+    with engine.connect() as conn:
+    
+        res = conn.execute(query, {"interval": str(day_interval)})
     df_result = pd.DataFrame(res.fetchall(), columns=res.keys())
     df_result["Streak_ID"] = df_result.index
     return df_result
@@ -492,9 +369,7 @@ def streak():
 
     return render_template("streak.html", error_message=error_message, df_data=df_data,streak_shown=bool(df_data))
 
-from flask import request, jsonify
-from werkzeug.exceptions import BadRequest
-import json
+
 
 @app.get("/api/stadiums/search")
 def api_stadiums_search():
@@ -822,7 +697,7 @@ def api_options():
     Returns distinct values for a given column using current filters,
     excluding the column itself and any columns to its right in the page's order.
     """
-    import json
+    
     column = request.args.get("column")
 
     # Two pages use this endpoint:
@@ -882,7 +757,7 @@ def api_options():
 @limiter.limit("30 per minute")
 def api_search():
     # ?filters=<json>&limit=2000
-    import json
+    
     try:
         filters = json.loads(request.args.get("filters") or "{}")
     except Exception:
@@ -900,7 +775,7 @@ def api_search():
         rows = conn.execute(sql, params).mappings().all()
         
         # ✅ Sort by date ascending (if not already)
-        rows = sorted(rows, key=lambda r: r["date"])
+        rows = rows, key=lambda r: r["date"]
 
     # craft markers from Lat/Lon if present
     markers, table_rows = [], []
@@ -911,12 +786,10 @@ def api_search():
         lon = item.get("Longitude")
         if lat is not None and lon is not None:
             markers.append({
-                "lat": float(item["Latitude"]),
-                "lng": float(item["Longitude"]),
-                "popup": f"{item.get('Stadium Name') or ''} — "
-                         f"{item.get('home') or ''} vs {item.get('away') or ''} "
-                         f"({item.get('date')})"
-            })
+            "lat": float(item["Latitude"]),
+            "lng": float(item["Longitude"]),
+            "popup": f"Date: {escape(item.get('date'))} Home: {escape(item.get('home'))} vs Away: {escape(item.get('away'))}"
+        })
 
     return jsonify({"rows": table_rows, "markers": markers})    
     

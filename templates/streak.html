@@ -470,16 +470,20 @@ table {
 			const { latitude: lat, longitude: lon, unique_id: id } = row;
 			if (lat == null || lon == null) return;
 
-			let popupText = `${row.date_and_time}: ${row.home} vs ${row.away} @ Stadium: ${row["Stadium Name"]}`;
-			if (options.withArrows && index === 0) popupText = "START: " + popupText;
-			else if (options.withArrows && index === data.length - 1) popupText = "END: " + popupText;
+			const popupDiv = document.createElement("div");
+			popupDiv.textContent = `${row.date_and_time}: ${row.home} vs ${row.away} @ Stadium: ${row["Stadium Name"]}`;
+
+			let label = popupDiv.textContent;
+			if (options.withArrows && index === 0) label = "START: " + label;
+			else if (options.withArrows && index === data.length - 1) label = "END: " + label;
+			popupDiv.textContent = label;
 
 			const marker = L.circleMarker([lat, lon], {
 				radius: 6,
 				color: 'black',
 				fillColor: dateColors[row.date],
 				fillOpacity: 0.9
-			}).addTo(map).bindPopup(popupText);
+			}).addTo(map).bindPopup(popupDiv);
 					
 		if (showFiltered) {
 
