@@ -498,6 +498,11 @@ def api_stadiums_search():
     } for r in rows if r["lat"] is not None and r["lon"] is not None]
 
     return jsonify({"rows": out_rows, "markers": markers})
+    
+    
+@app.route("/stadiums", methods=["GET"])
+def stadiums_page():
+    return render_template("stadiums.html")
 
 @app.route("/get_streak/<int:streak_id>") # so this streak_id is pulled from the javascript
 def get_streak(streak_id):
@@ -698,7 +703,8 @@ def api_options():
     excluding the column itself and any columns to its right in the page's order.
     """
     
-    column = request.args.get("column")
+    column = (request.args.get("column") or "").strip()
+    print("api_options column=", repr(column))
 
     # Two pages use this endpoint:
     # - fixtures page: ["country","league","home","away"]
