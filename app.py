@@ -732,19 +732,18 @@ def api_options():
     elif column in FIXTURES_ORDER:
         ORDER = FIXTURES_ORDER
     else:
-        return jsonify({"values": []}), 400
+        print("❌ api_options rejected column:", repr(column))
+        print("   STADIUMS_ORDER:", STADIUMS_ORDER)
+        print("   FIXTURES_ORDER:", FIXTURES_ORDER)
+        return jsonify({"error": f"Bad column: {column}"}), 400
 
     try:
         filters = json.loads(request.args.get("filters") or "{}")
         
         ALLOWED_FILTERS = {
-            "country",
-            "league",
-            "home",
-            "away",
-            "club",        # ✅ add this
-            "Team Name"
-        }
+    "country", "league", "home", "away", "club", "Team Name",
+    "date_from", "date_to", "date"   # ✅ add these
+    }
 
         for key in filters:
             if key not in ALLOWED_FILTERS:
