@@ -501,7 +501,7 @@ def api_stadiums_search():
     
     
 # --- homepage -> Stadiums ---
-@app.route("/api/stadiums/se", methods=["GET"]) #this is called a decorator apparently
+@app.route("/stadiums", methods=["GET"]) #this is called a decorator apparently
 def stadiums_home():
     with engine1.connect() as conn:
         def distinct(col):
