@@ -141,7 +141,7 @@ def key_to_col(key: str) -> str:
 def retrieve_sql_table(engine, table_name):
     query = text(f'SELECT * FROM "{table_name}"')
     with engine.connect() as conn:
-        res = conn.execute(query, params)
+        res = conn.execute(query)
     return pd.DataFrame(res.fetchall(), columns=res.keys())
 
 
