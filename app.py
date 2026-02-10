@@ -722,6 +722,7 @@ def api_options():
             "league",
             "home",
             "away",
+            "club",        # ✅ add this
             "Team Name"
         }
 
@@ -775,7 +776,7 @@ def api_search():
         rows = conn.execute(sql, params).mappings().all()
         
         # ✅ Sort by date ascending (if not already)
-        rows = rows, key=lambda r: r["date"]
+        rows =  sorted(rows, key=lambda r: r["date"])
 
     # craft markers from Lat/Lon if present
     markers, table_rows = [], []
