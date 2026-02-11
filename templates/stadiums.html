@@ -426,35 +426,41 @@ table {
       return;
     }
     const bounds = [];
-    markers.forEach(m => {
-			const div = document.createElement("div");
+	markers.forEach(m => {
+	  const div = document.createElement("div");
 
-			const strong = document.createElement("strong");
-			strong.textContent = `Stadium: ${m.stadium_name ?? ""}`;
-			div.appendChild(strong);
-			div.appendChild(document.createElement("br"));
+	  const strong = document.createElement("strong");
+	  strong.textContent = `Stadium: ${m.stadium_name ?? ""}`;
+	  div.appendChild(strong);
+	  div.appendChild(document.createElement("br"));
 
-			const line2 = document.createElement("div");
-			line2.textContent = `Team: ${m.team_name ?? ""} — Capacity: ${m.capacity ?? ""} Country: ${m.country ?? ""}`;
-			div.appendChild(line2);
+	  const line2 = document.createElement("div");
+	  line2.textContent = `Team: ${m.team_name ?? ""} — Capacity: ${m.capacity ?? ""} Country: ${m.country ?? ""}`;
+	  div.appendChild(line2);
 
-			if (m.google_maps) {
-			  const small = document.createElement("small");
-			  const a = document.createElement("a");
-			  a.textContent = "Go to Google Maps";
-			  a.href = m.google_maps;
-			  a.target = "_blank";
-			  a.rel = "noopener noreferrer";
-			  small.appendChild(a);
-			  div.appendChild(small);
-			}
+	  if (m.google_maps) {
+		const small = document.createElement("small");
+		const a = document.createElement("a");
+		a.textContent = "Go to Google Maps";
+		a.href = m.google_maps;
+		a.target = "_blank";
+		a.rel = "noopener noreferrer";
+		small.appendChild(a);
+		div.appendChild(small);
+	  }
 
+	  const cm = L.circleMarker([m.lat, m.lon], {
+		radius: 5,
+		weight: 1,
+		fillOpacity: 0.85
+	  });
 
-      cm.bindPopup(popup).addTo(markersLayer);
-      const k = keyFrom(m);
-      markerIndex[k] = cm;
-      bounds.push([m.lat, m.lon]);
-    });
+	  cm.bindPopup(div).addTo(markersLayer);
+
+	  const k = keyFrom(m);
+	  markerIndex[k] = cm;
+	  bounds.push([m.lat, m.lon]);
+	});
     try { map.fitBounds(bounds, {padding:[20,20]}); } catch {}
     map.invalidateSize();
   }
