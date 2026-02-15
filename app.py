@@ -54,10 +54,31 @@ limiter = Limiter(get_remote_address, app=app, default_limits=["200 per hour"])
 
 
 Talisman(app, content_security_policy={
-  "default-src": "'self'",
-  "script-src": "'self' https://unpkg.com 'unsafe-inline'",
-  "style-src": "'self' https://unpkg.com 'unsafe-inline'",
-  "img-src": "'self' data: https:",
+    "default-src": "'self'",
+
+    "script-src": [
+        "'self'",
+        "https://unpkg.com",
+        "'unsafe-inline'",
+    ],
+
+    "style-src": [
+        "'self'",
+        "https://unpkg.com",
+        "'unsafe-inline'",
+    ],
+
+    "img-src": [
+        "'self'",
+        "data:",
+        "https:",
+    ],
+
+    "connect-src": [
+        "'self'",
+        "https://unpkg.com",
+        "https://tile.openstreetmap.org",
+    ]
 })
 
 #secure session key
