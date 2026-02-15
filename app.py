@@ -460,7 +460,7 @@ def api_stadiums_search():
     sql = text(f"""
         WITH clubs AS (
           SELECT DISTINCT {q('Team Name')} AS team_name
-          SELECT DISTINCT {q('Country')} AS team_name
+          , {q('Country')} AS country
           FROM {q(DATA_TABLE)}
           {where_sql}
         )
