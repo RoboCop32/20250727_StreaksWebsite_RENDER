@@ -74,7 +74,7 @@ engine1 = create_engine(db_url, pool_pre_ping=True)
 #engine1 = create_engine(signin_info)
 
 
-main_table_name = "fixtures_stadium_combined_20260130"
+main_table_name = "fixtures_stadium_combined_20260130_fixed"
 
 STADIUMS_TABLE = "df_20260115_main_stadiums_table"  # matches your screenshot
 
