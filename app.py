@@ -473,6 +473,7 @@ def api_stadiums_search():
           s.{q('Latitude')}::float  AS lat
         FROM {q(STADIUMS_TABLE)} s
         JOIN clubs c ON c.team_name = s.{q('Team Name')}
+        AND c.country   = s.{q('Country')}
         ORDER BY s.{q('Team Name')}, s.{q('Stadium Name')}
     """)
 
